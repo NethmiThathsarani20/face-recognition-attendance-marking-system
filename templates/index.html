@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Attendance System</h1>
+        
+        <!-- Navigation -->
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('add_user') }}">Add User</a>
+        </nav>
+        
+        <!-- User Info -->
+        <div class="info-section">
+            <h3>Registered Users: {{ users|length }}</h3>
+            <p>Today's Attendance: {{ attendance|length }}</p>
+        </div>
+        
+        <!-- Attendance Marking -->
+        <div class="attendance-section">
+            <h2>Mark Attendance</h2>
+            
+            <!-- Camera Option -->
+            <div class="input-method">
+                <h3>Camera Capture</h3>
+                <div style="margin-bottom: 10px;">
+                    <label>
+                        <input type="radio" name="camera_type" value="local" checked onchange="toggleCameraInput()">
+                        Local Camera (Index):
+                    </label>
+                    <input type="number" id="camera_index" value="0" min="0" max="10" style="margin-left: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label>
+                        <input type="radio" name="camera_type" value="ip" onchange="toggleCameraInput()">
+                        IP Camera (URL):
+                    </label>
+                    <input type="text" id="camera_url" placeholder="e.g., http://user:pass@192.168.1.100:8080/video" 
+                           style="margin-left: 10px; width: 400px;" disabled>
+                </div>
+                <div style="margin-bottom: 10px; font-size: 12px; color: #666;">
+                    <strong>Common IP Camera URLs:</strong><br>
+                    • Android IP Webcam: http://192.168.1.100:8080/video<br>
+                    • ESP32-CAM: http://192.168.1.100:81/stream<br>
+                    • With authentication: http://username:password@192.168.1.100:8080/video<br>
+                    • RTSP: rtsp://192.168.1.100:554/stream
+                </div>
+                <button onclick="testCamera()">Test Camera</button>
+                <button onclick="markAttendanceCamera()">Mark Attendance (Camera)</button>
+                <div id="camera_result"></div>
+            </div>
+            
+            <!-- Upload Option -->
+            <div class="input-method">
+                <h3>Image Upload</h3>
+                <input type="file" id="image_upload" accept="image/*">
+                <button onclick="markAttendanceUpload()">Mark Attendance (Upload)</button>
+                <div id="upload_result"></div>
+            </div>
+        </div>
+        
+        <!-- Results Display -->
+        <div id="result_display" class="result-section" style="display: none;">
+            <h3>Attendance Result</h3>
+            <div id="result_content"></div>
+        </div>
+        
+        <!-- Today's Attendance -->
+        <div class="attendance-list">
+            <h2>Today's Attendance</h2>
+            <div id="attendance_table">
+                {% if attendance %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Time</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in attendance %}
+                            <tr>
+                                <td>{{ record.user_name }}</td>
+                                <td>{{ record.time }}</td>
+                                <td>{{ "%.2f"|format(record.confidence) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No attendance records for today.</p>
+                {% endif %}
+            </div>
+            <button onclick="refreshAttendance()">Refresh</button>
+        </div>
+    </div>
+    
+    <script>
+        // Toggle camera input based on selection
+        function toggleCameraInput() {
+            const cameraType = document.querySelector('input[name="camera_type"]:checked').value;
+            const cameraIndex = document.getElementById('camera_index');
+            const cameraUrl = document.getElementById('camera_url');
+            
+            if (cameraType === 'local') {
+                cameraIndex.disabled = false;
+                cameraUrl.disabled = true;
+            } else {
+                cameraIndex.disabled = true;
+                cameraUrl.disabled = false;
+            }
+        }
+        
+        // Get camera source based on selection
+        function getCameraSource() {
+            const cameraType = document.querySelector('input[name="camera_type"]:checked').value;
+            if (cameraType === 'local') {
+                return document.getElementById('camera_index').value;
+            } else {
+                return document.getElementById('camera_url').value;
+            }
+        }
+        
+        // Test camera functionality
+        function testCamera() {
+            const cameraSource = getCameraSource();
+            
+            if (!cameraSource || cameraSource.trim() === '') {
+                document.getElementById('camera_result').innerHTML = '<p style="color: red;">Please specify a camera source</p>';
+                return;
+            }
+            
+            fetch(`/camera_test/${encodeURIComponent(cameraSource)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('camera_result');
+                    if (data.success) {
+                        resultDiv.innerHTML = `
+                            <p>Camera working!</p>
+                            <img src="data:image/jpeg;base64,${data.image}" style="max-width: 300px;">
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `<p style="color: red;">Camera not available</p>`;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('camera_result').innerHTML = `<p style="color: red;">Error: ${error}</p>`;
+                });
+        }
+        
+        // Mark attendance using camera
+        function markAttendanceCamera() {
+            const cameraSource = getCameraSource();
+            
+            if (!cameraSource || cameraSource.trim() === '') {
+                displayResult({ success: false, message: 'Please specify a camera source' });
+                return;
+            }
+            
+            fetch('/mark_attendance_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ camera_source: cameraSource })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResult(data);
+            })
+            .catch(error => {
+                displayResult({ success: false, message: `Error: ${error}` });
+            });
+        }
+        
+        // Mark attendance using upload
+        function markAttendanceUpload() {
+            const fileInput = document.getElementById('image_upload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                displayResult({ success: false, message: 'Please select an image file' });
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            fetch('/mark_attendance_upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResult(data);
+            })
+            .catch(error => {
+                displayResult({ success: false, message: `Error: ${error}` });
+            });
+        }
+        
+        // Display result
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result_display');
+            const contentDiv = document.getElementById('result_content');
+            
+            if (data.success) {
+                contentDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ ${data.message}</h4>
+                        <p><strong>User:</strong> ${data.user_name}</p>
+                        <p><strong>Confidence:</strong> ${data.confidence.toFixed(2)}</p>
+                        <p><strong>Time:</strong> ${data.attendance_record.time}</p>
+                        ${data.captured_image ? `<img src="data:image/jpeg;base64,${data.captured_image}" style="max-width: 200px;">` : ''}
+                    </div>
+                `;
+                refreshAttendance();
+            } else {
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ${data.message}</h4>
+                    </div>
+                `;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        // Refresh attendance table
+        function refreshAttendance() {
+            fetch('/get_attendance')
+                .then(response => response.json())
+                .then(data => {
+                    const tableDiv = document.getElementById('attendance_table');
+                    if (data.length > 0) {
+                        let tableHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Time</th>
+                                        <th>Confidence</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        data.forEach(record => {
+                            tableHTML += `
+                                <tr>
+                                    <td>${record.user_name}</td>
+                                    <td>${record.time}</td>
+                                    <td>${record.confidence.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHTML += '</tbody></table>';
+                        tableDiv.innerHTML = tableHTML;
+                    } else {
+                        tableDiv.innerHTML = '<p>No attendance records for today.</p>';
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

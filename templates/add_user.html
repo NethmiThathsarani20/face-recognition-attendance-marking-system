@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - Attendance System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Add New User</h1>
+        
+        <!-- Navigation -->
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('add_user') }}">Add User</a>
+        </nav>
+        
+        <!-- Add User Form -->
+        <div class="form-section">
+            <form id="add_user_form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="user_name">User Name:</label>
+                    <input type="text" id="user_name" name="user_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="user_images">Select Images (multiple):</label>
+                    <input type="file" id="user_images" name="user_images" accept="image/*" multiple required>
+                    <small>Select multiple images of the same person for better recognition</small>
+                </div>
+                
+                <button type="submit">Add User</button>
+            </form>
+        </div>
+        
+        <!-- Image Preview -->
+        <div id="image_preview" class="preview-section" style="display: none;">
+            <h3>Selected Images:</h3>
+            <div id="preview_container"></div>
+        </div>
+        
+        <!-- Result Display -->
+        <div id="result_display" class="result-section" style="display: none;">
+            <div id="result_content"></div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ul>
+                <li>Enter a unique user name</li>
+                <li>Select multiple clear images of the person</li>
+                <li>Images should have good lighting and clear face visibility</li>
+                <li>System will automatically align and process faces</li>
+                <li>Use 3-5 images for better recognition accuracy</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Preview selected images
+        document.getElementById('user_images').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const previewSection = document.getElementById('image_preview');
+            const previewContainer = document.getElementById('preview_container');
+            
+            if (files.length > 0) {
+                previewContainer.innerHTML = '';
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '150px';
+                        img.style.height = '150px';
+                        img.style.objectFit = 'cover';
+                        img.style.margin = '5px';
+                        img.style.border = '1px solid #ccc';
+                        previewContainer.appendChild(img);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+                
+                previewSection.style.display = 'block';
+            } else {
+                previewSection.style.display = 'none';
+            }
+        });
+        
+        // Handle form submission
+        document.getElementById('add_user_form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const userName = formData.get('user_name');
+            const images = formData.getAll('user_images');
+            
+            if (!userName || images.length === 0) {
+                displayResult({ success: false, message: 'Please provide user name and select images' });
+                return;
+            }
+            
+            displayResult({ success: true, message: 'Processing images...' });
+            
+            fetch('/add_user', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    return response.json();
+                }
+            })
+            .then(data => {
+                if (data) {
+                    displayResult(data);
+                }
+            })
+            .catch(error => {
+                displayResult({ success: false, message: `Error: ${error}` });
+            });
+        });
+        
+        // Display result
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result_display');
+            const contentDiv = document.getElementById('result_content');
+            
+            if (data.success) {
+                contentDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ ${data.message}</h4>
+                    </div>
+                `;
+                
+                // Clear form if successful and not processing
+                if (data.message !== 'Processing images...') {
+                    document.getElementById('add_user_form').reset();
+                    document.getElementById('image_preview').style.display = 'none';
+                }
+            } else {
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ${data.message}</h4>
+                    </div>
+                `;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
