@@ -1,0 +1,7 @@
+insightface
+opencv-python
+flask
+numpy
+onnxruntime
+Pillow
+werkzeug
