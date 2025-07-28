@@ -4,6 +4,7 @@ Simple implementation with default settings.
 
 import os
 import pickle
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
@@ -142,6 +143,9 @@ class FaceManager:
             if similarity > best_score and similarity > SIMILARITY_THRESHOLD:
                 best_score = similarity
                 best_match = user_name
+                # Save recognized face to user's folder
+                if best_match:
+                    self._save_recognized_face(image, best_match)
 
         return (best_match, float(best_score)) if best_match else None
 
@@ -194,6 +198,22 @@ class FaceManager:
                 pickle.dump(self.face_database, f)
         except Exception as e:
             print(f"Error saving face database: {e}")
+
+    def _save_recognized_face(self, image: np.ndarray, user_name: str) -> None:
+        """Save recognized face to user's database folder.
+
+        Args:
+            image: Input image as numpy array
+            user_name: Name of the recognized user
+        """
+        user_dir = os.path.join(DATABASE_DIR, user_name)
+        os.makedirs(user_dir, exist_ok=True)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{timestamp}_{user_name}.jpg"
+        file_path = os.path.join(user_dir, filename)
+        
+        cv2.imwrite(file_path, image)
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Preprocess image for better face detection.

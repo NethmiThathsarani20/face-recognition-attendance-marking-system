@@ -68,7 +68,7 @@ class CNNTrainer:
 
         # Training configuration
         self.target_size = TARGET_SIZE
-        self.auto_training_enabled = True
+        self.auto_training_enabled = False  # Auto-training disabled by default
 
         self._load_existing_model()
 

@@ -19,6 +19,7 @@ try:
         ATTENDANCE_TIME_FORMAT,
         CNN_CONFIDENCE_THRESHOLD,
         DATABASE_DIR,
+        SIMILARITY_THRESHOLD,
         USE_CNN_MODEL,
     )
     from .face_manager import FaceManager
@@ -29,6 +30,8 @@ except ImportError:
         ATTENDANCE_DIR,
         ATTENDANCE_TIME_FORMAT,
         CNN_CONFIDENCE_THRESHOLD,
+        DATABASE_DIR,
+        SIMILARITY_THRESHOLD,
         USE_CNN_MODEL,
     )
     from face_manager import FaceManager
@@ -74,27 +77,10 @@ class AttendanceSystem:
         if image is None:
             return self._create_result(False, "Failed to get image from source")
 
-        # Recognize face using either CNN or InsightFace
-        recognition_result = None
-
-        if self.use_cnn_model and self.cnn_trainer.model is not None:
-            # Try CNN model first
-            recognition_result = self.cnn_trainer.predict_face(
-                image, CNN_CONFIDENCE_THRESHOLD,
-            )
+        # Always use InsightFace for recognition
+        recognition_result = self.face_manager.recognize_face(image)
 
         if recognition_result is None:
-            # Fall back to InsightFace or use as primary method
-            recognition_result = self.face_manager.recognize_face(image)
-
-        if recognition_result is None:
-            # If InsightFace doesn't recognize and we have CNN with auto-training enabled
-            if self.cnn_trainer.auto_training_enabled:
-                # Add as unknown user for training
-                unknown_name = self.cnn_trainer.add_unknown_user(image)
-                return self._create_result(
-                    False, f"Unknown face saved as {unknown_name} for training",
-                )
             return self._create_result(False, "No face recognized")
 
         user_name, confidence = recognition_result
@@ -399,24 +385,24 @@ class AttendanceSystem:
                     print("❌ Failed to capture frame")
                     break
 
-                # Store the captured frame
-                self._last_captured_image = frame.copy()
-
                 # Force InsightFace recognition
                 self.switch_to_insightface_model()
                 recognition_result = self.face_manager.recognize_face(frame)
 
                 if recognition_result is not None:
                     user_name, confidence = recognition_result
-                    # Save image to user's database folder
-                    user_folder = os.path.join(DATABASE_DIR, user_name)
-                    os.makedirs(user_folder, exist_ok=True)
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    image_path = os.path.join(user_folder, f"{timestamp}_{user_name}.jpg")
-                    cv2.imwrite(image_path, frame)
-                    print(f"✅ Recognized {user_name} (confidence: {confidence:.2f})")
-                    # Record attendance
-                    self._record_attendance(user_name, confidence)
+                    if confidence >= SIMILARITY_THRESHOLD:  # Only save if confidence meets threshold
+                        # Save recognized face to user's database folder
+                        user_folder = os.path.join(DATABASE_DIR, user_name)
+                        os.makedirs(user_folder, exist_ok=True)
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        image_path = os.path.join(user_folder, f"{timestamp}_{user_name}.jpg")
+                        cv2.imwrite(image_path, frame)
+                        print(f"✅ Recognized and saved {user_name} (confidence: {confidence:.2f})")
+                        # Record attendance
+                        self._record_attendance(user_name, confidence)
+                    else:
+                        print(f"⚠️ Low confidence recognition for {user_name} ({confidence:.2f})")
                 else:
                     print("👤 No known user recognized in frame")
 

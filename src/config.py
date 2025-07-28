@@ -51,5 +51,5 @@ ATTENDANCE_DATE_FORMAT = "%Y-%m-%d"
 ATTENDANCE_TIME_FORMAT = "%H:%M:%S"
 
 # Model selection settings
-USE_CNN_MODEL = False  # False: use InsightFace, True: use custom CNN
-CNN_CONFIDENCE_THRESHOLD = 0.7  # Minimum confidence for CNN predictions
+USE_CNN_MODEL = False  # Always use InsightFace for recognition
+CNN_CONFIDENCE_THRESHOLD = 0.7  # Only used when manually training CNN

@@ -218,22 +218,11 @@ def cnn_switch_model():
 
 @app.route("/cnn_toggle_auto_training", methods=["POST"])
 def cnn_toggle_auto_training():
-    """Toggle auto-training mode."""
-    try:
-        data = request.get_json()
-        enabled = data.get("enabled", False)
-
-        cnn_trainer = attendance_system.get_cnn_trainer()
-        cnn_trainer.toggle_auto_training(enabled)
-
-        return jsonify(
-            {
-                "success": True,
-                "message": f"Auto-training {'enabled' if enabled else 'disabled'}",
-            },
-        )
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+    """Auto-training toggle endpoint (disabled)."""
+    return jsonify({
+        "success": False,
+        "message": "Auto-training has been disabled. Please train the model manually when needed."
+    })
 
 
 @app.route("/cnn_prepare_data", methods=["POST"])
