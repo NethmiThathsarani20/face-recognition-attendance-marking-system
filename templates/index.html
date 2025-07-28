@@ -54,6 +54,15 @@
                 </div>
                 <button onclick="testCamera()">Test Camera</button>
                 <button onclick="markAttendanceCamera()">Mark Attendance (Camera)</button>
+                <div class="auto-mode-controls">
+                    <label>
+                        <input type="checkbox" id="auto_mode_enabled" onchange="toggleAutoMode()">
+                        Enable Automatic Recognition Mode
+                    </label>
+                    <div id="auto_mode_status" style="display: none;">
+                        Auto Recognition: <span id="auto_status">Inactive</span>
+                    </div>
+                </div>
                 <div id="camera_result"></div>
             </div>
             
@@ -104,6 +113,83 @@
     </div>
     
     <script>
+        let autoModeInterval = null;
+        const AUTO_MODE_INTERVAL = 5000; // 5 seconds between captures
+        
+        // Auto mode functions
+        function toggleAutoMode() {
+            const enabled = document.getElementById('auto_mode_enabled').checked;
+            const statusDiv = document.getElementById('auto_mode_status');
+            const statusSpan = document.getElementById('auto_status');
+            
+            if (enabled) {
+                statusDiv.style.display = 'block';
+                statusSpan.textContent = 'Active';
+                statusSpan.style.color = '#4CAF50';
+                startAutoMode();
+            } else {
+                statusDiv.style.display = 'none';
+                statusSpan.textContent = 'Inactive';
+                stopAutoMode();
+            }
+        }
+        
+        function startAutoMode() {
+            if (autoModeInterval) {
+                clearInterval(autoModeInterval);
+            }
+            
+            // Initial capture
+            performAutoCapture();
+            
+            // Set up periodic capture
+            autoModeInterval = setInterval(performAutoCapture, AUTO_MODE_INTERVAL);
+        }
+        
+        function stopAutoMode() {
+            if (autoModeInterval) {
+                clearInterval(autoModeInterval);
+                autoModeInterval = null;
+            }
+        }
+        
+        function performAutoCapture() {
+            const cameraSource = getCameraSource();
+            
+            if (!cameraSource || cameraSource.trim() === '') {
+                stopAutoMode();
+                document.getElementById('auto_mode_enabled').checked = false;
+                document.getElementById('camera_result').innerHTML = '<p style="color: red;">Please specify a camera source</p>';
+                return;
+            }
+            
+            fetch('/mark_attendance_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    camera_source: cameraSource,
+                    auto_mode: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    refreshAttendance();
+                }
+                // Only show errors in auto mode, success messages are too noisy
+                if (!data.success) {
+                    displayResult(data);
+                }
+            })
+            .catch(error => {
+                displayResult({ success: false, message: `Error: ${error}` });
+                stopAutoMode();
+                document.getElementById('auto_mode_enabled').checked = false;
+            });
+        }
+
         // Toggle camera input based on selection
         function toggleCameraInput() {
             const cameraType = document.querySelector('input[name="camera_type"]:checked').value;

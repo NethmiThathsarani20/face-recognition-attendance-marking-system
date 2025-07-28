@@ -18,6 +18,7 @@ try:
         ATTENDANCE_DIR,
         ATTENDANCE_TIME_FORMAT,
         CNN_CONFIDENCE_THRESHOLD,
+        DATABASE_DIR,
         USE_CNN_MODEL,
     )
     from .face_manager import FaceManager
@@ -42,6 +43,9 @@ class AttendanceSystem:
         self.face_manager = FaceManager()
         self.cnn_trainer = CNNTrainer()
         self.use_cnn_model = USE_CNN_MODEL
+        self._last_captured_image = None
+        # Clear any existing embeddings and reload from database
+        self.face_manager.clear_embeddings()
         self._load_existing_users()
 
     def _load_existing_users(self) -> None:
@@ -51,6 +55,7 @@ class AttendanceSystem:
 
     def mark_attendance(
         self, input_source: Union[np.ndarray, str, int],
+        save_captured: bool = True
     ) -> Dict[str, Any]:
         """Unified attendance marking function for camera, upload, or image array.
 
@@ -59,6 +64,7 @@ class AttendanceSystem:
                 - np.ndarray: Image array
                 - str: Path to image file
                 - int: Camera index
+            save_captured: Whether to save the captured image for recognized faces
 
         Returns:
             Dictionary with attendance result and metadata
@@ -161,6 +167,14 @@ class AttendanceSystem:
         # Save to daily attendance file
         attendance_file = os.path.join(ATTENDANCE_DIR, f"attendance_{date_str}.json")
         self._save_attendance_record(attendance_file, attendance_record)
+
+        # Save captured image to user's database folder if recognition is successful
+        if hasattr(self, '_last_captured_image') and self._last_captured_image is not None:
+            user_folder = os.path.join(DATABASE_DIR, user_name)
+            os.makedirs(user_folder, exist_ok=True)
+            timestamp = now.strftime("%Y%m%d_%H%M%S")
+            image_path = os.path.join(user_folder, f"{timestamp}_{user_name}.jpg")
+            cv2.imwrite(image_path, self._last_captured_image)
 
         return attendance_record
 
@@ -358,3 +372,59 @@ class AttendanceSystem:
     def get_cnn_trainer(self) -> CNNTrainer:
         """Get the CNN trainer instance for training operations."""
         return self.cnn_trainer
+
+    def start_automatic_recognition(
+        self, camera_source: Union[int, str] = 0, delay: float = 2.0
+    ) -> None:
+        """Start automatic face recognition with periodic capture.
+
+        Args:
+            camera_source: Camera index (int) for local cameras or URL (str) for IP cameras
+            delay: Delay between captures in seconds
+        """
+        print(f"📷 Starting automatic recognition with camera: {camera_source}")
+        cap = cv2.VideoCapture(camera_source)
+
+        if not cap.isOpened():
+            print("❌ Failed to open camera connection")
+            if isinstance(camera_source, str):
+                self._print_ip_camera_troubleshooting(camera_source)
+            return
+
+        try:
+            while True:
+                # Capture frame
+                ret, frame = cap.read()
+                if not ret or frame is None:
+                    print("❌ Failed to capture frame")
+                    break
+
+                # Store the captured frame
+                self._last_captured_image = frame.copy()
+
+                # Force InsightFace recognition
+                self.switch_to_insightface_model()
+                recognition_result = self.face_manager.recognize_face(frame)
+
+                if recognition_result is not None:
+                    user_name, confidence = recognition_result
+                    # Save image to user's database folder
+                    user_folder = os.path.join(DATABASE_DIR, user_name)
+                    os.makedirs(user_folder, exist_ok=True)
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    image_path = os.path.join(user_folder, f"{timestamp}_{user_name}.jpg")
+                    cv2.imwrite(image_path, frame)
+                    print(f"✅ Recognized {user_name} (confidence: {confidence:.2f})")
+                    # Record attendance
+                    self._record_attendance(user_name, confidence)
+                else:
+                    print("👤 No known user recognized in frame")
+
+                # Wait for specified delay
+                cv2.waitKey(int(delay * 1000))  # Convert to milliseconds
+
+        except KeyboardInterrupt:
+            print("\n⏹️ Automatic recognition stopped by user")
+        finally:
+            cap.release()
+            print("📷 Camera released")

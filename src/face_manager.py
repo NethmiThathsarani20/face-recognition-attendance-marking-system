@@ -171,6 +171,12 @@ class FaceManager:
         """
         return list(self.face_database.keys())
 
+    def clear_embeddings(self) -> None:
+        """Clear all face embeddings from memory and storage."""
+        self.face_database.clear()
+        if os.path.exists(EMBEDDINGS_FILE):
+            os.remove(EMBEDDINGS_FILE)
+
     def _load_face_database(self) -> Dict[str, np.ndarray]:
         """Load face database from pickle file."""
         if os.path.exists(EMBEDDINGS_FILE):

@@ -89,6 +89,8 @@ def mark_attendance_camera():
         return jsonify({"success": False, "message": "No JSON data provided"})
 
     camera_source = request.json.get("camera_source", 0)
+    auto_mode = request.json.get("auto_mode", False)
+    save_captured = not auto_mode  # Only save in manual mode
 
     # Convert camera_source to appropriate type
     if isinstance(camera_source, str) and camera_source.isdigit():
@@ -100,7 +102,7 @@ def mark_attendance_camera():
         return jsonify({"success": False, "message": "Failed to capture from camera"})
 
     # Mark attendance
-    result = attendance_system.mark_attendance(image)
+    result = attendance_system.mark_attendance(image, save_captured=save_captured)
 
     # Convert image to base64 for display
     if result["success"]:
