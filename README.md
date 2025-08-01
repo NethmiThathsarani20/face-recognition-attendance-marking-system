@@ -1,104 +1,218 @@
-# Simple Attendance Marking System
+# Face Recognition Attendance System
 
-A super simple face recognition attendance system using InsightFace with minimal configuration and maximum use of defaults.
+A comprehensive face recognition attendance system powered by InsightFace for production-grade recognition, with optional custom CNN training capabilities. Features professional web interface, comprehensive camera support, and robust user management.
 
-## Features
+## 🚀 Features
 
-- **Face Recognition**: Uses InsightFace with default buffalo_l model
-- **Simple Web UI**: Flask-based interface for camera/upload
-- **Camera Support**: Local cameras (USB/built-in) and IP cameras (MJPEG/RTSP)
-- **User Management**: Add new users with automatic face alignment
-- **Attendance Marking**: Unified function for camera and upload inputs
-- **JSON Output**: Simple attendance records in JSON format
-- **Minimal Configuration**: Everything configurable in one place
+### Core Recognition System
+- **InsightFace Integration**: Production-ready face recognition using buffalo_l model
+- **Multi-Input Support**: Camera capture, image upload, and file path processing
+- **Advanced Face Detection**: High-quality face detection and alignment
+- **Embedding Storage**: Efficient pickle-based persistence system
 
-## Installation
+### Professional Web Interface
+- **Multi-Page Application**: Clean dashboard with navigation between features
+- **Camera Integration**: Support for local USB cameras and IP cameras (MJPEG/RTSP)
+- **User Management**: Add users with multiple image uploads for better accuracy
+- **Real-Time Updates**: Live attendance tracking with immediate feedback
+
+### Advanced Capabilities
+- **Custom CNN Training**: Optional specialized model training for unique scenarios
+- **Video Processing**: Extract training data from video uploads
+- **Automatic Image Management**: Recognized faces saved to user folders with timestamps
+- **Comprehensive Error Handling**: Custom exception framework with graceful recovery
+- **Quality Assurance**: Modern Python practices with Ruff linting and type safety
+
+## 📦 Installation
 
 ```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Optional: Set up development environment
+make install-dev
 ```
 
-## Usage
+## 🎯 Quick Start
 
-### Run the Application
+### 1. Run the Application
 ```bash
 python run.py
 ```
 
-### Access Web Interface
-Open your browser and go to: `http://localhost:5000`
+### 2. Access Web Interface
+Open your browser: `http://localhost:5000`
 
-### Add New Users
-1. Go to "Add User" page
+### 3. Add Users
+1. Navigate to "Add User" page
 2. Enter user name
-3. Upload user images (system will auto-align faces)
-4. Images are processed and embeddings stored
+3. Upload multiple images for better accuracy
+4. System automatically processes and stores face embeddings
 
-### Mark Attendance
-1. **Local Camera**: Select camera index → Click "Mark Attendance"
-2. **IP Camera**: Select IP camera → Enter URL → Click "Mark Attendance"
-3. **Upload**: Select image → Click "Mark Attendance"
+### 4. Mark Attendance
+Choose your preferred method:
+- **Local Camera**: Select camera index → Click "Mark Attendance"
+- **IP Camera**: Enter camera URL → Click "Mark Attendance"  
+- **Image Upload**: Select image file → Click "Mark Attendance"
+
+## 💡 Usage Guide
 
 ### Camera Support
-- **Local Cameras**: USB cameras, built-in webcams (use camera index: 0, 1, 2, etc.)
+- **Local Cameras**: USB cameras, built-in webcams (camera index: 0, 1, 2, etc.)
 - **IP Cameras**: Network cameras with MJPEG or RTSP streams
   - Android IP Webcam: `http://192.168.1.100:8080/video`
   - ESP32-CAM: `http://192.168.1.100:81/stream`
+  - With authentication: `http://user:pass@IP:PORT/video`
   - Generic MJPEG: `http://IP:PORT/video`
   - Generic RTSP: `rtsp://IP:PORT/stream`
-  - With authentication: `http://user:pass@IP:PORT/video`
 
-## Configuration
+### User Management
+1. **Add Users**: Upload multiple images per user for improved recognition accuracy
+2. **Database Structure**: Images automatically organized in `database/username/` folders
+3. **Automatic Processing**: Face detection and embedding generation happens automatically
+4. **Multi-Image Support**: System averages multiple embeddings for better accuracy
 
-All settings are in `src/config.py`:
-- Model settings (uses InsightFace defaults)
-- Similarity threshold (default: 0.4)
-- Paths for database and output
-- Camera settings
+### Attendance Workflow
+1. **Face Detection**: InsightFace detects and aligns faces automatically
+2. **Recognition**: Matches against stored user embeddings
+3. **Recording**: Saves attendance to JSON files with timestamps
+4. **Image Saving**: Automatically saves recognized faces to user folders
 
-## Project Structure
+### Optional CNN Training
+1. **Access Training**: Navigate to "CNN Training" page
+2. **Prepare Data**: System extracts training data from user images
+3. **Train Model**: Configure and train custom CNN for specialized scenarios
+4. **Video Training**: Upload videos to extract multiple training frames
+5. **Model Switching**: Switch between InsightFace and custom CNN models
+
+## ⚙️ Configuration
+
+### Main Settings (`src/config.py`)
+```python
+# InsightFace Settings
+FACE_MODEL_NAME = "buffalo_l"        # Production-grade model
+SIMILARITY_THRESHOLD = 0.4           # Recognition threshold
+DETECTION_THRESHOLD = 0.5            # Face detection threshold
+
+# Web Application
+WEB_HOST = "0.0.0.0"
+WEB_PORT = 5000
+WEB_DEBUG = True
+
+# Camera Configuration
+DEFAULT_CAMERA_INDEX = 0
+IP_CAMERA_TIMEOUT = 10
+```
+
+## 🏗️ Project Structure
 
 ```
-├── src/                    # Source code
-├── templates/              # HTML templates  
-├── static/                # CSS and JS files
-├── database/              # User images (organized by name)
-├── embeddings/            # Face embeddings (pickle files)
-├── attendance_records/    # JSON attendance files
-└── tests/                 # Test files
+face-recognition-attendance-marking-system/
+├── src/                        # Source code modules
+│   ├── config.py               # System configuration
+│   ├── face_manager.py         # InsightFace integration
+│   ├── cnn_trainer.py          # Optional CNN training
+│   ├── attendance_system.py    # Main attendance logic
+│   ├── web_app.py             # Flask web interface
+│   └── exceptions.py          # Custom exception framework
+├── templates/                  # HTML templates
+├── static/                    # CSS and JavaScript
+├── database/                  # User images (auto-created)
+├── embeddings/               # Face embeddings storage
+├── attendance_records/       # Daily attendance JSON files
+├── tests/                    # Comprehensive test suite
+└── requirements.txt          # Dependencies
 ```
 
-## Testing
+## 🧪 Testing
 
-### Unit Tests
 ```bash
-python -m pytest tests/
+# Run all tests
+python tests/run_tests.py
+
+# Run specific test modules
+python -m pytest tests/test_face_manager.py
+python -m pytest tests/test_attendance_system.py
+python -m pytest tests/test_cnn_trainer.py
 ```
 
-### Demo Script
+## 🚀 Development
+
 ```bash
-python demo.py
+# Development setup
+make install-dev
+
+# Code quality checks
+make lint           # Fix linting issues
+make format         # Format code
+make type-check     # Run type checking
+make test           # Run test suite
 ```
 
-### IP Camera Testing
-```bash
-python test_ip_camera.py
-```
+## 📄 Dependencies
 
-Test your IP camera connection and functionality before using it in the main application.
+Core requirements:
+- **insightface**: Production-grade face recognition
+- **opencv-python**: Image processing and camera handling
+- **flask**: Web framework for user interface
+- **numpy**: Numerical operations and array handling
+- **tensorflow**: CNN training capabilities (optional)
+- **scikit-learn**: Machine learning utilities for CNN training
 
-## Dependencies
+## 🔧 Troubleshooting
 
-- insightface: Face recognition
-- opencv-python: Image processing
-- flask: Web framework
-- numpy: Array operations
-- pickle: Embedding storage
+### Common Issues
 
-## Notes
+1. **Camera Not Working**
+   - Check camera permissions
+   - Try different camera indices (0, 1, 2)
+   - For IP cameras, verify URL format and network connectivity
 
-- Uses InsightFace defaults for maximum simplicity
-- Minimal code approach (< 500 lines total)
-- JSON output for easy integration
-- Auto face alignment for optimal recognition
-- Single configuration point for easy customization
+2. **Face Not Recognized**
+   - Ensure good lighting conditions
+   - Add more training images for the user
+   - Check if face is clearly visible and not obscured
+
+3. **IP Camera Connection Issues**
+   - Verify camera URL format
+   - Check authentication credentials
+   - Ensure camera is on the same network
+   - Try accessing camera URL in a web browser first
+
+4. **Installation Issues**
+   - Install Visual Studio Build Tools (Windows)
+   - Use Python 3.8+ for best compatibility
+   - Consider using conda environment for complex dependencies
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with proper testing
+4. Ensure code quality with `make lint`
+5. Submit a pull request
+
+## 📚 Technical Details
+
+### Recognition Pipeline
+1. **Image Input** → **Face Detection** → **Alignment** → **Embedding Generation** → **Matching** → **Attendance Recording**
+
+### Storage Structure
+- **Embeddings**: Pickle files for fast loading
+- **Attendance**: Daily JSON files with timestamps
+- **Images**: Organized by user in database folders
+
+### Performance Optimization
+- Efficient embedding storage and retrieval
+- Optimized camera capture with buffer management
+- Minimal configuration approach using InsightFace defaults
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## ⭐ Acknowledgments
+
+- **InsightFace**: For providing excellent face recognition models
+- **OpenCV**: For comprehensive computer vision capabilities
+- **Flask**: For the lightweight web framework
