@@ -2,7 +2,15 @@
 
 A comprehensive face recognition attendance system powered by InsightFace for production-grade recognition, with optional custom CNN training capabilities. Features professional web interface, comprehensive camera support, and robust user management.
 
-## 🚀 Features
+## 📄 Abstract (Edge + Cloud Training)
+
+Abstract
+This paper presents an IoT-enabled automated attendance system designed for cost-effective edge computing on a Raspberry Pi. We use InsightFace to prepare training datasets for a Convolutional Neural Network (CNN) model, storing manually recognized users via a web UI. Low-cost ESP32 cameras acquire real-time faces, which are used to constantly prepare new datasets to train the CNN model. The CNN model is then trained on cloud computers to specifically recognize only the users it was trained on. A Raspberry Pi serves as the central hub, storing data, managing network connections, and hosting the web interface. The system’s dual-model architecture leverages the production-grade InsightFace buffalo_l model for more generalized face recognition, while the custom CNN model is trained with 100% training accuracy to recognize known users. The validation accuracy for the custom CNN model was 65.3% on a dataset of 2348 images across 220 classes. Given its continuous training on new data, the system shows potential for reliable, known-user recognition. The recognition pipeline involves image acquisition, face detection, alignment, embedding generation, and matching against a persistent database, with attendance records logged in daily JSON files. Emphasizing a modular design, comprehensive testing, and modern code quality practices, this project provides a scalable and robust solution to modernize student attendance monitoring within educational institutions.
+
+Keywords
+face recognition; attendance system; insightface; convolutional neural network; computer vision; esp32-cam
+
+## �🚀 Features
 
 ### Core Recognition System
 - **InsightFace Integration**: Production-ready face recognition using buffalo_l model
@@ -41,7 +49,7 @@ python run.py
 ```
 
 ### 2. Access Web Interface
-Open your browser: `http://localhost:5000`
+Open your browser: `http://localhost:3000`
 
 ### 3. Add Users
 1. Navigate to "Add User" page
@@ -96,7 +104,7 @@ DETECTION_THRESHOLD = 0.5            # Face detection threshold
 
 # Web Application
 WEB_HOST = "0.0.0.0"
-WEB_PORT = 5000
+WEB_PORT = 3000
 WEB_DEBUG = True
 
 # Camera Configuration
@@ -108,20 +116,25 @@ IP_CAMERA_TIMEOUT = 10
 
 ```
 face-recognition-attendance-marking-system/
-├── src/                        # Source code modules
-│   ├── config.py               # System configuration
-│   ├── face_manager.py         # InsightFace integration
-│   ├── cnn_trainer.py          # Optional CNN training
-│   ├── attendance_system.py    # Main attendance logic
-│   ├── web_app.py             # Flask web interface
-│   └── exceptions.py          # Custom exception framework
-├── templates/                  # HTML templates
-├── static/                    # CSS and JavaScript
-├── database/                  # User images (auto-created)
-├── embeddings/               # Face embeddings storage
-├── attendance_records/       # Daily attendance JSON files
-├── tests/                    # Comprehensive test suite
-└── requirements.txt          # Dependencies
+├── .github/workflows/           # CI workflows (cloud CNN training)
+│   └── train-cnn.yml            # GitHub Actions for CNN training
+├── train_cnn.py                 # Script to train the CNN model
+├── src/                         # Source code modules
+│   ├── config.py                # System configuration
+│   ├── face_manager.py          # InsightFace integration
+│   ├── cnn_trainer.py           # Optional CNN training
+│   ├── attendance_system.py     # Main attendance logic
+│   ├── web_app.py               # Flask web interface
+│   └── exceptions.py            # Custom exception framework
+├── templates/                   # HTML templates
+├── static/                      # CSS and JavaScript
+├── database/                    # User images (auto-created)
+├── embeddings/                  # Face embeddings storage
+├── attendance_records/          # Daily attendance JSON files
+├── tests/                       # Comprehensive test suite
+├── scripts/                     # Helper scripts (edge sync)
+│   └── edge_sync.sh             # Commit & push database images from Raspberry Pi
+└── requirements.txt             # Dependencies
 ```
 
 ## 🧪 Testing
@@ -216,3 +229,41 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **InsightFace**: For providing excellent face recognition models
 - **OpenCV**: For comprehensive computer vision capabilities
 - **Flask**: For the lightweight web framework
+
+---
+
+## ☁️ Cloud CNN Training with GitHub Actions
+
+Minimal setup so the Raspberry Pi stays light and the cloud does the heavy lifting.
+
+What happens:
+- Edge (Pi) captures images to `database/<user>/...`
+- Pi commits and pushes those images to this repo
+- GitHub Actions trains the CNN on every push that touches `database/**`
+- Trained artifacts are written to `cnn_models/` and pushed back to the repo
+
+Included files:
+- `.github/workflows/train-cnn.yml` – CI workflow
+- `train_cnn.py` – small entrypoint to run training in CI
+- `scripts/edge_sync.sh` – helper to push only database updates from the Pi
+
+### Raspberry Pi (Edge) steps
+1) Put new images per user under `database/<User_Name>/...`
+2) Push changes:
+   - First time only: make it executable: `chmod +x scripts/edge_sync.sh`
+   - Run: `./scripts/edge_sync.sh "Add images for <User_Name>"`
+   - Optional: add a cron job to auto-push hourly if changes exist.
+
+### Cloud (CI) steps
+- Trigger: any push modifying `database/**`
+- Action runner does:
+   - Install deps via `requirements.txt`
+   - Run `python train_cnn.py --epochs 30 --validation-split 0.2`
+   - Commit `cnn_models/custom_face_model.h5`, `cnn_models/label_encoder.pkl`, and `cnn_models/training_log.json`
+
+Notes:
+- The workflow only triggers on `database/**` changes, so model pushes won’t loop CI.
+- The entrypoint always re-prepares data and retrains the model, overwriting artifacts.
+
+### Switching model in the app
+Keep InsightFace as default. If you add a toggle to use the CNN, ensure the app loads artifacts from `cnn_models/` and handles fallback if they don’t exist.
