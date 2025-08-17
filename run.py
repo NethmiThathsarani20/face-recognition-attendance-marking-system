@@ -14,7 +14,7 @@ from src.web_app import run_app
 
 if __name__ == '__main__':
     print("Starting Simple Attendance System...")
-    print("Open your browser and go to: http://localhost:5000")
+    print("Open your browser and go to: http://localhost:3000")
     print("Press Ctrl+C to stop the server")
     
     try:

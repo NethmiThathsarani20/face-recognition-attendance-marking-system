@@ -71,6 +71,7 @@ main_sync() {
       git commit -m "$MSG" || true
       if git push; then
         echo "Pushed image updates to origin."
+        echo "GitHub Actions will retrain models based on database/** changes."
       else
         echo "Push failed. Ensure remote auth (SSH keys or token) is configured." >&2
         exit 1

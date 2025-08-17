@@ -21,6 +21,26 @@
         <div class="info-section">
             <h3>Registered Users: {{ users|length }}</h3>
             <p>Today's Attendance: {{ attendance|length }}</p>
+            <div class="model-toggle" style="margin-top:10px;">
+                <strong>Recognition Model:</strong>
+                <label style="margin-left:10px;">
+                    <input type="radio" name="model_type" id="model_insightface" value="insightface" onchange="switchModel(this.value)">
+                    InsightFace
+                </label>
+                <label style="margin-left:10px;">
+                    <input type="radio" name="model_type" id="model_cnn" value="cnn" onchange="switchModel(this.value)">
+                    CNN (custom)
+                </label>
+                <label style="margin-left:10px;">
+                    <input type="radio" name="model_type" id="model_embedding" value="embedding" onchange="switchModel(this.value)">
+                    Embedding (InsightFace + LR)
+                </label>
+                <label style="margin-left:10px;">
+                    <input type="radio" name="model_type" id="model_custom_embedding" value="custom_embedding" onchange="switchModel(this.value)">
+                    Custom Embedding (independent)
+                </label>
+                <span id="model_status" style="margin-left:10px; font-size:12px; color:#666;"></span>
+            </div>
         </div>
         
         <!-- Attendance Marking -->
@@ -114,7 +134,66 @@
     
     <script>
         let autoModeInterval = null;
-        const AUTO_MODE_INTERVAL = 5000; // 5 seconds between captures
+        const AUTO_MODE_INTERVAL = 3000; // 5 seconds between captures
+        document.addEventListener('DOMContentLoaded', () => {
+            loadModelStatus();
+        });
+
+        // Model toggle functions
+        function loadModelStatus() {
+            fetch('/model_status')
+                .then(r => r.json())
+                .then(data => {
+                    const current = (data.current_model || '').toLowerCase();
+                    const isCNN = current === 'cnn';
+                    const isEmbedding = current === 'embedding';
+                    const isCustom = current === 'customembedding' || current === 'custom_embedding';
+
+                    // Set radio states
+                    document.getElementById('model_cnn').checked = isCNN;
+                    document.getElementById('model_embedding').checked = isEmbedding;
+                    document.getElementById('model_custom_embedding').checked = isCustom;
+                    document.getElementById('model_insightface').checked = !(isCNN || isEmbedding || isCustom);
+
+                    // Availability toggles
+                    const cnnAvailable = !!data.cnn_model_available;
+                    const embAvailable = !!data.embedding_model_available;
+                    const custAvailable = !!data.custom_embedding_model_available;
+                    document.getElementById('model_cnn').disabled = !cnnAvailable;
+                    document.getElementById('model_embedding').disabled = !embAvailable;
+                    document.getElementById('model_custom_embedding').disabled = !custAvailable;
+
+                    // Status line
+                    const status = document.getElementById('model_status');
+                    const availabilityCnn = cnnAvailable ? 'available' : 'not available';
+                    const availabilityEmb = embAvailable ? 'available' : 'not available';
+                    const availabilityCust = custAvailable ? 'available' : 'not available';
+                    status.textContent = `Current: ${data.current_model} • CNN is ${availabilityCnn} • Embedding is ${availabilityEmb} • Custom is ${availabilityCust}`;
+                })
+                .catch(() => {
+                    // If status endpoint fails, default to InsightFace
+                    document.getElementById('model_insightface').checked = true;
+                    document.getElementById('model_status').textContent = 'Current: InsightFace';
+                });
+        }
+
+        function switchModel(modelType) {
+            const url = modelType === 'cnn'
+                ? '/switch/cnn'
+                : (modelType === 'embedding'
+                    ? '/switch/embedding'
+                    : (modelType === 'custom_embedding'
+                        ? '/switch/custom_embedding'
+                        : '/switch/insightface'));
+            fetch(url, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                loadModelStatus();
+                const msg = data.message || (data.success ? `Switched to ${modelType}` : 'Failed to switch model');
+                displayResult({ success: !!data.success, message: msg });
+            })
+            .catch(err => displayResult({ success: false, message: `Error switching model: ${err}` }));
+        }
         
         // Auto mode functions
         function toggleAutoMode() {

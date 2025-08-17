@@ -86,7 +86,7 @@ def main():
     print("2. Or organize images in database/ folder by name")
     print("3. Run demo: python demo.py")
     print("4. Run tests: python tests/run_tests.py")
-    print("\n🌐 Web interface will be available at: http://localhost:5000")
+    print("\n🌐 Web interface will be available at: http://localhost:3000")
     
     if user_count > 0:
         print(f"\n✅ {user_count} users already loaded from database")

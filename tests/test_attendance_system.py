@@ -173,7 +173,7 @@ class TestAttendanceSystem(unittest.TestCase):
         mock_cnn = MagicMock()
         mock_cnn_trainer.return_value = mock_cnn
         mock_cnn.model = None
-        mock_cnn.auto_training_enabled = False  # Disable auto training for this test
+    # Auto-training removed
 
         attendance_system = AttendanceSystem()
         test_image = create_test_image()
@@ -181,7 +181,7 @@ class TestAttendanceSystem(unittest.TestCase):
         result = attendance_system.mark_attendance(test_image)
 
         self.assertFalse(result["success"])
-        self.assertEqual(result["message"], "No face recognized")
+        self.assertEqual(result["message"], "No face detected or recognition failed")
 
     @patch("src.attendance_system.FaceManager")
     @patch(
@@ -356,7 +356,7 @@ class TestAttendanceSystem(unittest.TestCase):
         # Mock CNN trainer
         mock_trainer_instance = MagicMock()
         mock_trainer_instance.model = MagicMock()
-        mock_trainer_instance.auto_training_enabled = True
+    # Auto-training removed
         mock_trainer_instance.get_training_status.return_value = {"status": "test"}
         mock_cnn_trainer.return_value = mock_trainer_instance
 
@@ -369,7 +369,7 @@ class TestAttendanceSystem(unittest.TestCase):
         self.assertIn("current_model", info)
         self.assertIn("cnn_model_available", info)
         self.assertIn("insightface_available", info)
-        self.assertIn("auto_training_enabled", info)
+    # auto_training_enabled removed from info
 
     @patch("src.attendance_system.CNNTrainer")
     @patch("src.attendance_system.FaceManager")
@@ -415,49 +415,18 @@ class TestAttendanceSystem(unittest.TestCase):
 
     @patch("src.attendance_system.CNNTrainer")
     @patch("src.attendance_system.FaceManager")
-    def test_mark_attendance_cnn_fallback_to_insightface(
+    def test_mark_attendance_unknown_user(
         self, mock_face_manager, mock_cnn_trainer,
     ):
-        """Test attendance marking fallback from CNN to InsightFace."""
-        # Mock face manager
-        mock_fm_instance = MagicMock()
-        mock_fm_instance.recognize_face.return_value = ("fallback_user", 0.7)
-        mock_face_manager.return_value = mock_fm_instance
-
-        # Mock CNN trainer (returns None)
-        mock_trainer_instance = MagicMock()
-        mock_trainer_instance.model = MagicMock()
-        mock_trainer_instance.predict_face.return_value = None  # CNN can't recognize
-        mock_cnn_trainer.return_value = mock_trainer_instance
-
-        with patch("src.attendance_system.ATTENDANCE_DIR", self.temp_dir):
-            attendance_system = AttendanceSystem()
-            attendance_system.face_manager = mock_fm_instance
-            attendance_system.cnn_trainer = mock_trainer_instance
-            attendance_system.use_cnn_model = True
-
-            test_image = create_test_image()
-            result = attendance_system.mark_attendance(test_image)
-
-            self.assertTrue(result["success"])
-            self.assertEqual(result["user_name"], "fallback_user")
-            self.assertEqual(result["confidence"], 0.7)
-
-    @patch("src.attendance_system.CNNTrainer")
-    @patch("src.attendance_system.FaceManager")
-    def test_mark_attendance_auto_training_unknown_user(
-        self, mock_face_manager, mock_cnn_trainer,
-    ):
-        """Test attendance marking with auto-training for unknown users."""
+        """Test attendance marking when unknown user detected."""
         # Mock face manager (no recognition)
         mock_fm_instance = MagicMock()
         mock_fm_instance.recognize_face.return_value = None
         mock_face_manager.return_value = mock_fm_instance
 
-        # Mock CNN trainer with auto-training
+    # Mock CNN trainer
         mock_trainer_instance = MagicMock()
         mock_trainer_instance.model = None  # No CNN model
-        mock_trainer_instance.auto_training_enabled = True
         mock_trainer_instance.add_unknown_user.return_value = "unknown_user_001"
         mock_cnn_trainer.return_value = mock_trainer_instance
 
@@ -471,8 +440,8 @@ class TestAttendanceSystem(unittest.TestCase):
             result = attendance_system.mark_attendance(test_image)
 
             self.assertFalse(result["success"])
-            self.assertIn("unknown_user_001", result["message"])
-            mock_trainer_instance.add_unknown_user.assert_called_once()
+            self.assertEqual(result["message"], "No face detected or recognition failed")
+            mock_trainer_instance.add_unknown_user.assert_not_called()
 
 
 if __name__ == "__main__":

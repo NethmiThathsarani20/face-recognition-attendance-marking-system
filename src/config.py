@@ -25,8 +25,8 @@ SIMILARITY_THRESHOLD = 0.4  # Default similarity threshold for matching
 
 # Web application settings
 WEB_HOST = "0.0.0.0"
-WEB_PORT = 5000
-WEB_DEBUG = True
+WEB_PORT = 3000
+WEB_DEBUG = False
 
 # File settings
 EMBEDDINGS_FILE = os.path.join(EMBEDDINGS_DIR, "face_embeddings.pkl")

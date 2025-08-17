@@ -4,13 +4,12 @@ A comprehensive face recognition attendance system powered by InsightFace for pr
 
 ## 📄 Abstract (Edge + Cloud Training)
 
-Abstract
-This paper presents an IoT-enabled automated attendance system designed for cost-effective edge computing on a Raspberry Pi. We use InsightFace to prepare training datasets for a Convolutional Neural Network (CNN) model, storing manually recognized users via a web UI. Low-cost ESP32 cameras acquire real-time faces, which are used to constantly prepare new datasets to train the CNN model. The CNN model is then trained on cloud computers to specifically recognize only the users it was trained on. A Raspberry Pi serves as the central hub, storing data, managing network connections, and hosting the web interface. The system’s dual-model architecture leverages the production-grade InsightFace buffalo_l model for more generalized face recognition, while the custom CNN model is trained with 100% training accuracy to recognize known users. The validation accuracy for the custom CNN model was 65.3% on a dataset of 2348 images across 220 classes. Given its continuous training on new data, the system shows potential for reliable, known-user recognition. The recognition pipeline involves image acquisition, face detection, alignment, embedding generation, and matching against a persistent database, with attendance records logged in daily JSON files. Emphasizing a modular design, comprehensive testing, and modern code quality practices, this project provides a scalable and robust solution to modernize student attendance monitoring within educational institutions.
+This project delivers an IoT-enabled, edge-assisted attendance system that recognizes known users using InsightFace for detection, alignment, and embeddings, paired with a lightweight embedding-based classifier for production. ESP32‑CAM devices stream faces to a Raspberry Pi that acts as the edge host for the web UI, storage, and device/network orchestration; all resource‑intensive training is automated in the cloud via GitHub Actions instead of running on the Pi. On the current dataset (65 users; 1,545 embeddings), the InsightFace + LogisticRegression pipeline achieves 0.994 train accuracy and 0.984 validation accuracy (top‑3: 0.984). Experimental baselines trained on the same dataset perform poorly: the lightweight CNN yields ~3.9% validation accuracy (top‑3: ~6.1%) and the custom‑embedding model ~1.0% validation accuracy. These experimental paths remain available for research, while the production‑grade path is InsightFace embeddings + a simple classifier. The end‑to‑end pipeline covers acquisition, detection, alignment, embedding, and matching against a persistent database, with daily JSON attendance logs, and emphasizes modularity, reliability, and maintainability for scalable deployment.
 
 Keywords
 face recognition; attendance system; insightface; convolutional neural network; computer vision; esp32-cam
 
-## �🚀 Features
+## 🚀 Features
 
 ### Core Recognition System
 - **InsightFace Integration**: Production-ready face recognition using buffalo_l model
@@ -25,11 +24,12 @@ face recognition; attendance system; insightface; convolutional neural network; 
 - **Real-Time Updates**: Live attendance tracking with immediate feedback
 
 ### Advanced Capabilities
-- **Custom CNN Training**: Optional specialized model training for unique scenarios
+- **Training Modes (optional)**: Lightweight CNN, embedding-based classifier (InsightFace + Logistic Regression), and an experimental custom-embedding model
 - **Video Processing**: Extract training data from video uploads
 - **Automatic Image Management**: Recognized faces saved to user folders with timestamps
 - **Comprehensive Error Handling**: Custom exception framework with graceful recovery
 - **Quality Assurance**: Modern Python practices with Ruff linting and type safety
+- **Model Switching**: Runtime toggle between InsightFace, CNN, embedding classifier, and custom-embedding backends
 
 ## 📦 Installation
 
@@ -38,7 +38,9 @@ face recognition; attendance system; insightface; convolutional neural network; 
 pip install -r requirements.txt
 
 # Optional: Set up development environment
-make install-dev
+make setup-dev
+# (Optional) Developer tools
+# pip install ruff mypy bandit
 ```
 
 ## 🎯 Quick Start
@@ -89,9 +91,10 @@ Choose your preferred method:
 ### Optional CNN Training
 1. **Access Training**: Navigate to "CNN Training" page
 2. **Prepare Data**: System extracts training data from user images
-3. **Train Model**: Configure and train custom CNN for specialized scenarios
+3. **Train Model**: Configure and train the lightweight CNN
 4. **Video Training**: Upload videos to extract multiple training frames
-5. **Model Switching**: Switch between InsightFace and custom CNN models
+5. **Switch Models**: Toggle between InsightFace, CNN, embedding classifier, and custom-embedding
+   - API endpoints: `/switch/insightface`, `/switch/cnn`, `/switch/embedding`, `/switch/custom_embedding`, status at `/model_status`
 
 ## ⚙️ Configuration
 
@@ -115,10 +118,13 @@ IP_CAMERA_TIMEOUT = 10
 ## 🏗️ Project Structure
 
 ```
-face-recognition-attendance-marking-system/
-├── .github/workflows/           # CI workflows (cloud CNN training)
-│   └── train-cnn.yml            # GitHub Actions for CNN training
-├── train_cnn.py                 # Script to train the CNN model
+face-recognition-based-attendance-marking-system/
+├── .github/workflows/           # CI workflows (cloud training)
+│   └── train.yml                # GitHub Actions: trains CNN + embedding (and custom-embedding)
+├── train.py                     # Unified trainer (cnn, embedding, custom-embedding)
+├── train_cnn.py                 # CNN-only CI entrypoint (optional)
+├── train_embedding.py           # Standalone embedding-classifier trainer
+├── train_custom_embedding.py    # Standalone custom-embedding trainer (experimental)
 ├── src/                         # Source code modules
 │   ├── config.py                # System configuration
 │   ├── face_manager.py          # InsightFace integration
@@ -130,6 +136,9 @@ face-recognition-attendance-marking-system/
 ├── static/                      # CSS and JavaScript
 ├── database/                    # User images (auto-created)
 ├── embeddings/                  # Face embeddings storage
+├── cnn_models/                  # Trained CNN artifacts
+├── embedding_models/            # Trained embedding classifier artifacts
+├── custom_embedding_models/     # Trained custom-embedding artifacts (experimental)
 ├── attendance_records/          # Daily attendance JSON files
 ├── tests/                       # Comprehensive test suite
 ├── scripts/                     # Helper scripts (edge sync)
@@ -143,17 +152,18 @@ face-recognition-attendance-marking-system/
 # Run all tests
 python tests/run_tests.py
 
-# Run specific test modules
-python -m pytest tests/test_face_manager.py
-python -m pytest tests/test_attendance_system.py
-python -m pytest tests/test_cnn_trainer.py
+# Or via Makefile
+make test
+
+# Run a specific test class (example)
+python -m pytest tests.test_face_manager.TestFaceManager
 ```
 
 ## 🚀 Development
 
 ```bash
 # Development setup
-make install-dev
+make setup-dev
 
 # Code quality checks
 make lint           # Fix linting issues
@@ -169,8 +179,10 @@ Core requirements:
 - **opencv-python**: Image processing and camera handling
 - **flask**: Web framework for user interface
 - **numpy**: Numerical operations and array handling
-- **tensorflow**: CNN training capabilities (optional)
-- **scikit-learn**: Machine learning utilities for CNN training
+- **onnxruntime**: InsightFace ONNX runtime providers
+- **Pillow**, **werkzeug**: Image and web utilities
+- **tensorflow**: Required for CNN/custom-embedding training (optional in production)
+- **scikit-learn**: Embedding-classifier (Logistic Regression)
 
 ## 🔧 Troubleshooting
 
@@ -232,19 +244,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-## ☁️ Cloud CNN Training with GitHub Actions
+## ☁️ Cloud Training with GitHub Actions
 
 Minimal setup so the Raspberry Pi stays light and the cloud does the heavy lifting.
 
 What happens:
-- Edge (Pi) captures images to `database/<user>/...`
+- Edge (Pi) captures images to `database/<user>/...` (or `database1/`, `database2/` if you use alternative folders)
 - Pi commits and pushes those images to this repo
-- GitHub Actions trains the CNN on every push that touches `database/**`
-- Trained artifacts are written to `cnn_models/` and pushed back to the repo
+- GitHub Actions trains on every push that touches `database/**`, `database1/**`, or `database2/**`
+- Trained artifacts are written to `cnn_models/`, `embedding_models/`, and `custom_embedding_models/` and pushed back to the repo
 
 Included files:
-- `.github/workflows/train-cnn.yml` – CI workflow
-- `train_cnn.py` – small entrypoint to run training in CI
+- `.github/workflows/train.yml` – CI workflow (trains CNN + embedding + custom-embedding)
+- `train.py` – unified training entrypoint used by CI
 - `scripts/edge_sync.sh` – helper to push only database updates from the Pi
 
 ### Raspberry Pi (Edge) steps
@@ -255,15 +267,20 @@ Included files:
    - Optional: add a cron job to auto-push hourly if changes exist.
 
 ### Cloud (CI) steps
-- Trigger: any push modifying `database/**`
+- Trigger: any push modifying `database/**`, `database1/**`, or `database2/**` (you can also run the workflow manually)
 - Action runner does:
    - Install deps via `requirements.txt`
-   - Run `python train_cnn.py --epochs 30 --validation-split 0.2`
-   - Commit `cnn_models/custom_face_model.h5`, `cnn_models/label_encoder.pkl`, and `cnn_models/training_log.json`
+   - Run `python train.py --epochs 30 --validation-split 0.2`
+   - Commit updated artifacts in `cnn_models/`, `embedding_models/`, and `custom_embedding_models/`
 
 Notes:
 - The workflow only triggers on `database/**` changes, so model pushes won’t loop CI.
-- The entrypoint always re-prepares data and retrains the model, overwriting artifacts.
+- `train.py` re-prepares data and retrains selected models, overwriting artifacts as needed.
 
 ### Switching model in the app
-Keep InsightFace as default. If you add a toggle to use the CNN, ensure the app loads artifacts from `cnn_models/` and handles fallback if they don’t exist.
+InsightFace is the default. You can switch at runtime:
+- `/switch/insightface`
+- `/switch/cnn`
+- `/switch/embedding`
+- `/switch/custom_embedding`
+Check `/model_status` for availability and details.

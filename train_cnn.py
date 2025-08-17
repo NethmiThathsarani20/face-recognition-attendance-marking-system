@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import sys
 
 # Make sure we can import from src/
@@ -26,21 +27,19 @@ def main():
     parser.add_argument("--validation-split", type=float, default=0.2)
     args = parser.parse_args()
 
-    trainer = CNNTrainer()
-
-    # Remove existing model artifacts for a fresh train (as requested)
+    # Remove all existing model artifacts for a fresh train (as requested)
     models_dir = os.path.join(HERE, "cnn_models")
-    to_remove = [
-        os.path.join(models_dir, "custom_face_model.h5"),
-        os.path.join(models_dir, "label_encoder.pkl"),
-        os.path.join(models_dir, "training_log.json"),
-    ]
-    for path in to_remove:
-        try:
-            if os.path.exists(path):
-                os.remove(path)
-        except OSError:
-            pass
+    try:
+        shutil.rmtree(models_dir)
+    except FileNotFoundError:
+        pass
+    except OSError:
+        # Best-effort cleanup; continue
+        pass
+    os.makedirs(models_dir, exist_ok=True)
+
+    # Do not load any existing model/state
+    trainer = CNNTrainer()
 
     # Always (re)prepare data and retrain
     trainer.prepare_training_data()

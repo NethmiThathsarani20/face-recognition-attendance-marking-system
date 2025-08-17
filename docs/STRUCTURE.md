@@ -18,7 +18,7 @@ face-recognition-attendance-marking-system/
 ├── database/                 # User images organized by folders (auto-created)
 ├── embeddings/              # InsightFace embeddings (pickle files)
 ├── cnn_models/              # CNN model storage directory (when trained)
-│   ├── custom_face_model.h5  # Trained CNN model
+│   ├── custom_face_model.keras  # Trained CNN model
 │   ├── label_encoder.pkl     # Class label encoder
 │   └── training_log.json     # Training history and metrics
 ├── attendance_records/      # Daily JSON attendance files

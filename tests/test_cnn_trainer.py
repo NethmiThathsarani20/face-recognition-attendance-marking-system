@@ -74,7 +74,6 @@ class TestCNNTrainer(unittest.TestCase):
             self.assertIsNotNone(trainer)
             self.assertIsNotNone(trainer.face_manager)
             self.assertEqual(trainer.target_size, (112, 112))
-            self.assertTrue(trainer.auto_training_enabled)
 
     def test_create_model(self):
         """Test CNN model creation."""
@@ -85,7 +84,8 @@ class TestCNNTrainer(unittest.TestCase):
             model = self.cnn_trainer.create_model(5)
 
             self.assertIsNotNone(model)
-            mock_sequential.assert_called_once()
+            # Allow multiple Sequential calls (augmentation + model)
+            self.assertGreaterEqual(mock_sequential.call_count, 1)
             mock_model.compile.assert_called_once()
 
     @patch("src.face_manager.FaceAnalysis")
@@ -242,13 +242,6 @@ class TestCNNTrainer(unittest.TestCase):
             self.assertTrue(result.startswith("unknown_user_"))
             mock_imwrite.assert_called_once()
 
-    def test_toggle_auto_training(self):
-        """Test toggling auto-training mode."""
-        initial_state = self.cnn_trainer.auto_training_enabled
-
-        self.cnn_trainer.toggle_auto_training(not initial_state)
-
-        self.assertEqual(self.cnn_trainer.auto_training_enabled, not initial_state)
 
     def test_get_training_status(self):
         """Test getting training status."""
@@ -256,7 +249,6 @@ class TestCNNTrainer(unittest.TestCase):
 
         self.assertIsInstance(status, dict)
         self.assertIn("model_exists", status)
-        self.assertIn("auto_training_enabled", status)
         self.assertIn("training_data_count", status)
         self.assertIn("unknown_counter", status)
 

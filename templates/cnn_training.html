@@ -112,13 +112,6 @@
                 <small>Switch between the general-purpose InsightFace model and your custom-trained CNN model.</small>
             </div>
             
-            <!-- Auto-training Toggle -->
-            <div style="margin: 15px 0;">
-                <label>
-                    <input type="checkbox" id="autoTraining" onchange="toggleAutoTraining(this.checked)">
-                    Enable Auto-Training (automatically retrain when unknown faces are detected)
-                </label>
-            </div>
         </div>
         
         <!-- Training Data Management -->
@@ -262,9 +255,6 @@
                 html += `<p><span class="status-indicator status-warning"></span>CNN Model: Not trained yet</p>`;
             }
             
-            // Auto-training status
-            const autoStatus = status.auto_training_enabled ? 'status-good' : 'status-warning';
-            html += `<p><span class="status-indicator ${autoStatus}"></span>Auto-Training: ${status.auto_training_enabled ? 'Enabled' : 'Disabled'}</p>`;
             
             // Training data
             if (status.cnn_training_status) {
@@ -285,8 +275,6 @@
                 modelRadio.checked = true;
             }
             
-            // Update auto-training checkbox
-            document.getElementById('autoTraining').checked = status.auto_training_enabled || false;
         }
 
         function switchModel(modelType) {
@@ -311,26 +299,6 @@
             });
         }
 
-        function toggleAutoTraining(enabled) {
-            fetch('/cnn_toggle_auto_training', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ enabled: enabled })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    addLogMessage(`Auto-training ${enabled ? 'enabled' : 'disabled'}`, 'info');
-                } else {
-                    addLogMessage(`Failed to toggle auto-training: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                addLogMessage('Error toggling auto-training: ' + error.message, 'error');
-            });
-        }
 
         function prepareData() {
             addLogMessage('Preparing training data...', 'info');

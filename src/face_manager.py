@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 from insightface.app import FaceAnalysis
+import onnxruntime as ort
 
 # Handle both relative and absolute imports
 try:
@@ -39,7 +40,12 @@ class FaceManager:
 
     def __init__(self):
         """Initialize face analysis app with default settings."""
-        self.app = FaceAnalysis(name=FACE_MODEL_NAME)
+        # Configure ONNX Runtime providers to avoid CUDA warning on systems without CUDA
+        available = ort.get_available_providers()
+        providers = [p for p in ("CoreMLExecutionProvider", "CPUExecutionProvider") if p in available]
+        if not providers:
+            providers = ["CPUExecutionProvider"]
+        self.app = FaceAnalysis(name=FACE_MODEL_NAME, providers=providers)
         self.app.prepare(
             ctx_id=0, det_size=DETECTION_SIZE, det_thresh=DETECTION_THRESHOLD,
         )

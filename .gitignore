@@ -1,7 +1,9 @@
 .venv/
+.conda/
 __pycache__/
 .pytest_cache/
 *.pyc
 *.pyo
 *.pyd
 *.vscode
+.DS_Store

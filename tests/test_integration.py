@@ -141,7 +141,7 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(DETECTION_SIZE, (640, 640))
         self.assertEqual(SIMILARITY_THRESHOLD, 0.4)
         self.assertEqual(WEB_HOST, "0.0.0.0")
-        self.assertEqual(WEB_PORT, 5000)
+        self.assertEqual(WEB_PORT, 3000)
 
         # Test directories exist
         self.assertTrue(os.path.exists(DATABASE_DIR))

@@ -189,9 +189,9 @@ def cnn_training():
     return render_template("cnn_training.html")
 
 
-@app.route("/cnn_status")
-def cnn_status():
-    """Get CNN training status."""
+@app.route("/model_status")
+def model_status():
+    """Get current model status (active model and availability)."""
     try:
         status = attendance_system.get_current_model_info()
         return jsonify(status)
@@ -199,15 +199,21 @@ def cnn_status():
         return jsonify({"error": str(e)})
 
 
+
+
 @app.route("/cnn_switch_model", methods=["POST"])
 def cnn_switch_model():
-    """Switch between CNN and InsightFace models."""
+    """Switch between CNN, Embedding, and InsightFace models."""
     try:
         data = request.get_json()
         model_type = data.get("model_type", "insightface")
 
         if model_type == "cnn":
             attendance_system.switch_to_cnn_model()
+        elif model_type == "embedding":
+            attendance_system.switch_to_embedding_model()
+        elif model_type in ("custom_embedding", "custom-embedding"):
+            attendance_system.switch_to_custom_embedding_model()
         else:
             attendance_system.switch_to_insightface_model()
 
@@ -216,13 +222,43 @@ def cnn_switch_model():
         return jsonify({"success": False, "message": str(e)})
 
 
-@app.route("/cnn_toggle_auto_training", methods=["POST"])
-def cnn_toggle_auto_training():
-    """Auto-training toggle endpoint (disabled)."""
-    return jsonify({
-        "success": False,
-        "message": "Auto-training has been disabled. Please train the model manually when needed."
-    })
+# Separate switch endpoints for each model (simple to call from UI)
+@app.route("/switch/insightface", methods=["POST"])
+def switch_insightface():
+    try:
+        attendance_system.switch_to_insightface_model()
+        return jsonify({"success": True, "message": "Switched to insightface model"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/switch/cnn", methods=["POST"])
+def switch_cnn():
+    try:
+        attendance_system.switch_to_cnn_model()
+        return jsonify({"success": True, "message": "Switched to cnn model"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/switch/embedding", methods=["POST"])
+def switch_embedding():
+    try:
+        attendance_system.switch_to_embedding_model()
+        return jsonify({"success": True, "message": "Switched to embedding model"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/switch/custom_embedding", methods=["POST"])
+def switch_custom_embedding():
+    try:
+        attendance_system.switch_to_custom_embedding_model()
+        return jsonify({"success": True, "message": "Switched to custom embedding model"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
 
 
 @app.route("/cnn_prepare_data", methods=["POST"])

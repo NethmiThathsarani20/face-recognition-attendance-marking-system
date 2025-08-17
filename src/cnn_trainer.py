@@ -7,22 +7,26 @@ Provides functionality to train a lightweight CNN for specific face recognition 
 import json
 import os
 import pickle
+import random
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, List
 
 import cv2
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.class_weight import compute_class_weight
 
 try:
     from tensorflow.keras import layers, models, optimizers, callbacks  # type: ignore
     from tensorflow.keras.utils import to_categorical  # type: ignore
+    from tensorflow.keras import metrics as keras_metrics  # type: ignore
 except ImportError:
     # Fallback for different TensorFlow versions
     from tf_keras import layers, models, optimizers, callbacks  # type: ignore
     from tf_keras.utils import to_categorical  # type: ignore
+    from tf_keras import metrics as keras_metrics  # type: ignore
 
 # Handle both relative and absolute imports
 try:
@@ -42,7 +46,8 @@ DEFAULT_EPOCHS = 50
 DEFAULT_VALIDATION_SPLIT = 0.2
 DEFAULT_FRAME_INTERVAL = 30
 PADDING = 20
-MODEL_FILENAME = "custom_face_model.h5"
+# Use native Keras format to avoid HDF5 legacy warnings
+MODEL_FILENAME = "custom_face_model.keras"
 ENCODER_FILENAME = "label_encoder.pkl"
 LOG_FILENAME = "training_log.json"
 
@@ -51,7 +56,14 @@ class CNNTrainer:
     """CNN Training class for custom face recognition model."""
 
     def __init__(self):
-        """Initialize CNN trainer with InsightFace for data preparation."""
+        """Initialize CNN trainer with InsightFace for data preparation (always fresh)."""
+        # Reproducibility
+        np.random.seed(42)
+        random.seed(42)
+        try:
+            tf.random.set_seed(42)  # type: ignore
+        except Exception:
+            pass
         self.face_manager = FaceManager()
         self.model = None
         self.label_encoder = LabelEncoder()
@@ -68,24 +80,8 @@ class CNNTrainer:
 
         # Training configuration
         self.target_size = TARGET_SIZE
-        self.auto_training_enabled = False  # Auto-training disabled by default
 
-        self._load_existing_model()
-
-    def _load_existing_model(self):
-        """Load existing trained model if available."""
-        try:
-            if os.path.exists(self.model_path) and os.path.exists(self.encoder_path):
-                self.model = tf.keras.models.load_model(self.model_path)  # type: ignore
-                with open(self.encoder_path, "rb") as f:
-                    self.label_encoder = pickle.load(f)
-                print(
-                    f"✅ Loaded existing CNN model with {len(self.label_encoder.classes_)} classes"
-                )
-            else:
-                print("📝 No existing CNN model found")
-        except Exception as e:
-            print(f"⚠️ Error loading existing model: {e}")
+    # Note: We intentionally do not load any existing model here to avoid confusion.
 
     def create_model(self, num_classes: int) -> models.Model:
         """
@@ -97,33 +93,45 @@ class CNNTrainer:
         Returns:
             Compiled Keras model
         """
+        # Data augmentation (applied only during training)
+        data_augmentation = models.Sequential(
+            [
+                layers.RandomFlip("horizontal"),
+                layers.RandomRotation(0.08),
+                layers.RandomZoom(0.08),
+                layers.RandomContrast(0.2),
+            ],
+            name="augmentation",
+        )
+
+        l2 = tf.keras.regularizers.l2(1e-4)  # type: ignore
+
         model = models.Sequential(
             [
-                # Input layer
                 layers.Input(shape=(112, 112, 3)),
-                # First convolutional block
-                layers.Conv2D(32, (3, 3), activation="relu"),
+                data_augmentation,
+                # First block (separable conv to reduce params, improve generalization)
+                layers.SeparableConv2D(32, (3, 3), padding="same", activation="relu", depthwise_regularizer=l2, pointwise_regularizer=l2),
                 layers.BatchNormalization(),
                 layers.MaxPooling2D((2, 2)),
-                layers.Dropout(0.25),
-                # Second convolutional block
-                layers.Conv2D(64, (3, 3), activation="relu"),
+                layers.Dropout(0.2),
+                # Second block
+                layers.SeparableConv2D(64, (3, 3), padding="same", activation="relu", depthwise_regularizer=l2, pointwise_regularizer=l2),
                 layers.BatchNormalization(),
                 layers.MaxPooling2D((2, 2)),
-                layers.Dropout(0.25),
-                # Third convolutional block
-                layers.Conv2D(128, (3, 3), activation="relu"),
+                layers.Dropout(0.3),
+                # Third block
+                layers.SeparableConv2D(128, (3, 3), padding="same", activation="relu", depthwise_regularizer=l2, pointwise_regularizer=l2),
                 layers.BatchNormalization(),
                 layers.MaxPooling2D((2, 2)),
-                layers.Dropout(0.25),
-                # Flatten and dense layers
-                layers.Flatten(),
-                layers.Dense(256, activation="relu"),
+                layers.Dropout(0.4),
+                # Global pooling + dense
+                layers.GlobalAveragePooling2D(),
+                layers.Dense(256, activation="relu", kernel_regularizer=l2),
                 layers.BatchNormalization(),
                 layers.Dropout(0.5),
-                layers.Dense(128, activation="relu"),
-                layers.Dropout(0.5),
-                # Output layer
+                layers.Dense(128, activation="relu", kernel_regularizer=l2),
+                layers.Dropout(0.4),
                 layers.Dense(num_classes, activation="softmax"),
             ]
         )
@@ -132,7 +140,10 @@ class CNNTrainer:
         model.compile(
             optimizer=optimizers.Adam(learning_rate=0.001),
             loss="categorical_crossentropy",
-            metrics=["accuracy"],
+            metrics=[
+                keras_metrics.CategoricalAccuracy(name="categorical_accuracy"),
+                keras_metrics.TopKCategoricalAccuracy(k=3, name="top3_accuracy"),
+            ],
         )
 
         return model
@@ -147,8 +158,17 @@ class CNNTrainer:
         self.training_data = []
         self.training_labels = []
 
-        # Get all users from database
-        users = self.face_manager.get_user_list()
+        # Enumerate all users directly from database folder (ignore precomputed embeddings)
+        if not os.path.exists(DATABASE_DIR):
+            msg = f"Database directory not found at: {DATABASE_DIR}"
+            print(f"❌ {msg}")
+            raise InsufficientDataError(msg)
+
+        users = [
+            d
+            for d in sorted(os.listdir(DATABASE_DIR))
+            if os.path.isdir(os.path.join(DATABASE_DIR, d)) and not d.startswith(".")
+        ]
         if not users:
             msg = "No users found in database"
             print(f"❌ {msg}")
@@ -236,6 +256,12 @@ class CNNTrainer:
         self,
         epochs: int = DEFAULT_EPOCHS,
         validation_split: float = DEFAULT_VALIDATION_SPLIT,
+        # Callback configuration (aligned with train.py CLI)
+        monitor: str = "val_categorical_accuracy",
+        early_stopping_patience: Optional[int] = 8,
+        early_stopping_min_delta: float = 0.0,
+        reduce_lr_patience: Optional[int] = 4,
+        reduce_lr_factor: float = 0.5,
     ) -> Dict[str, Any]:
         """
         Train the CNN model with prepared data.
@@ -243,10 +269,23 @@ class CNNTrainer:
         Args:
             epochs: Number of training epochs
             validation_split: Fraction of data for validation
+            monitor: Metric name to monitor for callbacks (e.g., 'val_loss' or 'val_categorical_accuracy')
+            early_stopping_patience: Patience for EarlyStopping; set None or <=0 to disable
+            early_stopping_min_delta: Minimum change to qualify as improvement for EarlyStopping
+            reduce_lr_patience: Patience for ReduceLROnPlateau; set None or <=0 to disable
+            reduce_lr_factor: Factor by which the learning rate will be reduced
 
         Returns:
             Training results dictionary
         """
+        # Always start fresh: remove any existing artifacts
+        for _path in (self.model_path, self.encoder_path, self.training_log_path):
+            try:
+                if os.path.exists(_path):
+                    os.remove(_path)
+            except OSError:
+                pass
+
         if not self.training_data:
             return {"success": False, "message": "No training data available"}
 
@@ -277,18 +316,50 @@ class CNNTrainer:
             stratify=y_encoded,
         )
 
+        # Compute class weights to offset class imbalance
+        classes: np.ndarray = np.unique(y_encoded)
+        class_weights_vec = compute_class_weight(class_weight="balanced", classes=classes, y=y_encoded)
+        class_weight = {int(c): float(w) for c, w in zip(classes, class_weights_vec)}
+
         # Training callbacks
         try:
-            callback_list = [
-                callbacks.EarlyStopping(
-                    patience=10, restore_best_weights=True
-                ),
-                callbacks.ReduceLROnPlateau(
-                    factor=0.5, patience=5
-                ),
-            ]
+            # Decide direction based on monitor string
+            mode = "min" if ("loss" in monitor.lower()) else "max"
+            callback_list = []  # type: List[Any]
+
+            if early_stopping_patience and early_stopping_patience > 0:
+                callback_list.append(
+                    callbacks.EarlyStopping(
+                        monitor=monitor,
+                        patience=int(early_stopping_patience),
+                        min_delta=float(early_stopping_min_delta),
+                        restore_best_weights=True,
+                        mode=mode,
+                    )
+                )
+
+            if reduce_lr_patience and reduce_lr_patience > 0:
+                callback_list.append(
+                    callbacks.ReduceLROnPlateau(
+                        monitor=monitor,
+                        factor=float(reduce_lr_factor),
+                        patience=int(reduce_lr_patience),
+                        mode=mode,
+                    )
+                )
+
+            # Always checkpoint the best model
+            callback_list.append(
+                callbacks.ModelCheckpoint(
+                    filepath=self.model_path,
+                    monitor=monitor,
+                    save_best_only=True,
+                    save_weights_only=False,
+                    mode=mode,
+                )
+            )
         except (AttributeError, NameError):
-            # Fallback for different TensorFlow versions
+            # Fallback for different TensorFlow/Keras variants
             callback_list = []
 
         # Train model
@@ -300,17 +371,73 @@ class CNNTrainer:
             batch_size=32,
             validation_data=(X_val, y_val),
             callbacks=callback_list,
+            class_weight=class_weight,
             verbose=1,  # type: ignore
         )
 
         training_time = (datetime.now() - start_time).total_seconds()
 
-        # Evaluate model
-        train_loss, train_acc = self.model.evaluate(X_train, y_train, verbose=0)  # type: ignore
-        val_loss, val_acc = self.model.evaluate(X_val, y_val, verbose=0)  # type: ignore
+        # Evaluate model with named metrics (handle Keras/TF variations)
+        # Newer Keras versions can return a dict; older versions return a list aligned with metrics_names.
+        try:
+            train_eval = self.model.evaluate(X_train, y_train, verbose=0, return_dict=True)  # type: ignore[arg-type]
+            val_eval = self.model.evaluate(X_val, y_val, verbose=0, return_dict=True)  # type: ignore[arg-type]
+        except TypeError:
+            # return_dict not supported, fall back to list + metrics_names
+            eval_names: List[str] = self.model.metrics_names  # type: ignore
+            train_eval = self.model.evaluate(X_train, y_train, verbose=0)  # type: ignore
+            val_eval = self.model.evaluate(X_val, y_val, verbose=0)  # type: ignore
 
-        # Save model and encoder
-        self.model.save(self.model_path)
+            def _to_list(x: Any) -> List[float]:
+                if isinstance(x, (list, tuple)):
+                    return list(x)
+                try:
+                    import numpy as _np  # type: ignore
+                    if isinstance(x, _np.ndarray):
+                        return x.tolist()
+                except Exception:
+                    pass
+                # Last resort: wrap scalar
+                try:
+                    return [float(x)]
+                except Exception:
+                    return [x]  # type: ignore
+
+            def _eval_list_to_dict(names: List[str], values_any: Any) -> Dict[str, float]:
+                values = _to_list(values_any)
+                return {str(n): float(v) for n, v in zip(names, values)}
+
+            train_metrics: Dict[str, float] = _eval_list_to_dict(eval_names, train_eval)
+            val_metrics: Dict[str, float] = _eval_list_to_dict(eval_names, val_eval)
+        else:
+            # Dict path
+            def _cast_dict(d: Dict[str, Any]) -> Dict[str, float]:
+                out: Dict[str, float] = {}
+                for k, v in d.items():
+                    try:
+                        out[str(k)] = float(v)  # type: ignore[arg-type]
+                    except Exception:
+                        # In case value is a 0-dim array or other numeric type
+                        try:
+                            import numpy as _np  # type: ignore
+                            if isinstance(v, _np.ndarray):
+                                out[str(k)] = float(v.item())
+                                continue
+                        except Exception:
+                            pass
+                        # Fallback to NaN
+                        out[str(k)] = float("nan")
+                return out
+
+            train_metrics = _cast_dict(train_eval)  # type: ignore[arg-type]
+            val_metrics = _cast_dict(val_eval)  # type: ignore[arg-type]
+
+        # Ensure best model is saved even if checkpoint is unavailable
+        try:
+            if not os.path.exists(self.model_path):
+                self.model.save(self.model_path)
+        except Exception:
+            self.model.save(self.model_path)
         with open(self.encoder_path, "wb") as f:
             pickle.dump(self.label_encoder, f)
 
@@ -319,14 +446,15 @@ class CNNTrainer:
             "timestamp": datetime.now().isoformat(),
             "num_classes": num_classes,
             "num_samples": len(X),
-            "epochs": len(history.history["loss"])
-            if history and hasattr(history, "history")
-            else epochs,
+            "epochs": len(history.history["loss"]) if history and hasattr(history, "history") else epochs,
             "training_time_seconds": training_time,
-            "final_train_accuracy": float(train_acc),
-            "final_val_accuracy": float(val_acc),
-            "final_train_loss": float(train_loss),
-            "final_val_loss": float(val_loss),
+            # Metrics
+            "final_train_loss": float(train_metrics.get("loss", np.nan)),
+            "final_val_loss": float(val_metrics.get("loss", np.nan)),
+            "final_train_accuracy": float(train_metrics.get("categorical_accuracy", np.nan)),
+            "final_val_accuracy": float(val_metrics.get("categorical_accuracy", np.nan)),
+            "final_train_top3_accuracy": float(train_metrics.get("top3_accuracy", np.nan)),
+            "final_val_top3_accuracy": float(val_metrics.get("top3_accuracy", np.nan)),
             "classes": list(self.label_encoder.classes_),
         }
 
@@ -334,20 +462,17 @@ class CNNTrainer:
             json.dump(training_log, f, indent=2)
 
         print("✅ Training completed!")
-        print(f"   Training accuracy: {train_acc:.4f}")
-        print(f"   Validation accuracy: {val_acc:.4f}")
+        print(f"   Training accuracy: {training_log['final_train_accuracy']:.4f}")
+        print(f"   Validation accuracy: {training_log['final_val_accuracy']:.4f}")
+        if not np.isnan(training_log.get("final_val_top3_accuracy", float("nan"))):
+            print(f"   Top-3 Val accuracy: {training_log['final_val_top3_accuracy']:.4f}")
         print(f"   Training time: {training_time:.2f} seconds")
 
         return {
             "success": True,
             "message": "Model trained successfully",
             "training_log": training_log,
-            "history": {
-                key: [float(val) for val in values]
-                for key, values in history.history.items()
-            }
-            if history and hasattr(history, "history")
-            else {},
+            "history": {key: [float(val) for val in values] for key, values in history.history.items()} if history and hasattr(history, "history") else {},
         }
 
     def predict_face(
@@ -426,26 +551,9 @@ class CNNTrainer:
 
         print(f"💾 Saved unknown user as: {unknown_name}")
 
-        # If auto-training is enabled, trigger retraining
-        if self.auto_training_enabled:
-            self._trigger_auto_training()
 
         return unknown_name
 
-    def _trigger_auto_training(self):
-        """Trigger automatic model retraining when new data is added."""
-        print("🔄 Auto-training triggered...")
-        try:
-            if self.prepare_training_data():
-                result = self.train_model(
-                    epochs=20
-                )  # Shorter training for auto-updates
-                if result["success"]:
-                    print("✅ Auto-training completed successfully")
-                else:
-                    print(f"❌ Auto-training failed: {result['message']}")
-        except Exception as e:
-            print(f"❌ Auto-training error: {e}")
 
     def get_training_status(self) -> Dict[str, Any]:
         """
@@ -456,7 +564,6 @@ class CNNTrainer:
         """
         status = {
             "model_exists": self.model is not None,
-            "auto_training_enabled": self.auto_training_enabled,
             "training_data_count": len(self.training_data),
             "unknown_counter": self.unknown_counter,
         }
@@ -475,15 +582,6 @@ class CNNTrainer:
 
         return status
 
-    def toggle_auto_training(self, enabled: bool):
-        """
-        Enable or disable automatic training.
-
-        Args:
-            enabled: Whether to enable auto-training
-        """
-        self.auto_training_enabled = enabled
-        print(f"🔧 Auto-training {'enabled' if enabled else 'disabled'}")
 
     def add_training_data_from_video(
         self,

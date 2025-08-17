@@ -91,7 +91,7 @@
 ## Usage Instructions:
 1. Install dependencies: `pip install -r requirements.txt`
 2. Run the system: `python run.py`
-3. Open browser: `http://localhost:5000`
+3. Open browser: `http://localhost:3000`
 4. Add users via web interface or use existing database folder structure
 5. Mark attendance using:
    - Local camera (USB/built-in webcam)

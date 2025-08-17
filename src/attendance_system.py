@@ -13,11 +13,15 @@ import numpy as np
 # Handle both relative and absolute imports
 try:
     from .cnn_trainer import CNNTrainer
+    from .embedding_trainer import EmbeddingTrainer
+    from .custom_embedding_trainer import CustomEmbeddingTrainer
     from .config import (
         ATTENDANCE_DATE_FORMAT,
         ATTENDANCE_DIR,
         ATTENDANCE_TIME_FORMAT,
         CNN_CONFIDENCE_THRESHOLD,
+        BASE_DIR,
+        CNN_MODELS_DIR,
         DATABASE_DIR,
         SIMILARITY_THRESHOLD,
         USE_CNN_MODEL,
@@ -25,11 +29,15 @@ try:
     from .face_manager import FaceManager
 except ImportError:
     from cnn_trainer import CNNTrainer
+    from embedding_trainer import EmbeddingTrainer
+    from custom_embedding_trainer import CustomEmbeddingTrainer
     from config import (
         ATTENDANCE_DATE_FORMAT,
         ATTENDANCE_DIR,
         ATTENDANCE_TIME_FORMAT,
         CNN_CONFIDENCE_THRESHOLD,
+        BASE_DIR,
+        CNN_MODELS_DIR,
         DATABASE_DIR,
         SIMILARITY_THRESHOLD,
         USE_CNN_MODEL,
@@ -42,10 +50,22 @@ class AttendanceSystem:
     """
 
     def __init__(self):
-        """Initialize attendance system with face manager and CNN trainer."""
+        """Initialize attendance system with face manager and model backends."""
         self.face_manager = FaceManager()
-        self.cnn_trainer = CNNTrainer()
-        self.use_cnn_model = USE_CNN_MODEL
+        # Model selection flags (default to InsightFace)
+        self.use_cnn_model: bool = USE_CNN_MODEL
+        self.use_embedding_model: bool = False
+        self.use_custom_embedding_model: bool = False
+
+        # Trainers (lazy init on switch)
+        self.cnn_trainer: Optional[CNNTrainer] = CNNTrainer() if self.use_cnn_model else None
+        self.embedding_trainer: Optional[EmbeddingTrainer] = None
+        self.custom_embedding_trainer: Optional[CustomEmbeddingTrainer] = None
+
+        # Availability flags (set when models are loaded)
+        self.embedding_model_available: bool = False
+        self.custom_embedding_model_available: bool = False
+        
         self._last_captured_image = None
         # Clear any existing embeddings and reload from database
         self.face_manager.clear_embeddings()
@@ -72,21 +92,55 @@ class AttendanceSystem:
         Returns:
             Dictionary with attendance result and metadata
         """
+        print(f"📋 Starting attendance marking process with input type: {type(input_source)}")
+        
         # Get image from input source
         image = self._get_image_from_source(input_source)
         if image is None:
+            print("❌ Failed to get valid image from input source")
             return self._create_result(False, "Failed to get image from source")
+        
+        print(f"✅ Successfully obtained image of shape: {image.shape}")
 
-        # Always use InsightFace for recognition
-        recognition_result = self.face_manager.recognize_face(image)
+        # Optionally store last captured image if requested
+        self._last_captured_image = image if save_captured else None
+        
+        recognition_result = None
 
+        # Use selected model (priority: CNN > CustomEmbedding > Embedding > InsightFace similarity)
+        if self.use_cnn_model and self.cnn_trainer is not None and self.cnn_trainer.model is not None:
+            print("🧠 Using CNN model for face recognition")
+            recognition_result = self.cnn_trainer.predict_face(image, confidence_threshold=CNN_CONFIDENCE_THRESHOLD)
+        elif self.use_custom_embedding_model and self.custom_embedding_model_available and self.custom_embedding_trainer._embedding_model is not None:
+            print("🧠 Using Custom Embedding model for face recognition")
+            recognition_result = self.custom_embedding_trainer.predict(image)
+        elif self.use_embedding_model and self.embedding_model_available and self.embedding_trainer.model is not None:
+            print("🧠 Using Embedding classifier for face recognition")
+            recognition_result = self.embedding_trainer.predict(image, threshold=0.0)
+        else:
+            print("👤 Using InsightFace model for face recognition")
+            recognition_result = self.face_manager.recognize_face(image)
+        
         if recognition_result is None:
-            return self._create_result(False, "No face recognized")
-
+            print("❌ No face detected or recognition failed")
+            return self._create_result(False, "No face detected or recognition failed")
+        
         user_name, confidence = recognition_result
+        
+        if user_name is None:
+            print("❓ Unknown person detected")
+            return self._create_result(False, "Unknown person detected", 
+                                      {"confidence": float(confidence) if confidence else 0.0})
+        
+        print(f"✓ Recognized user: {user_name} with confidence: {confidence:.4f}")
 
         # Record attendance
-        attendance_record = self._record_attendance(user_name, confidence)
+        try:
+            attendance_record = self._record_attendance(user_name, confidence)
+            print(f"📝 Attendance recorded for {user_name}")
+        except Exception as e:
+            print(f"❌ Error recording attendance: {e}")
+            return self._create_result(False, f"Error recording attendance: {str(e)}")
 
         return self._create_result(
             True,
@@ -330,12 +384,47 @@ class AttendanceSystem:
     def switch_to_cnn_model(self):
         """Switch to using CNN model for recognition."""
         self.use_cnn_model = True
+        self.use_embedding_model = False
+        # Lazy-initialize CNN trainer on first switch
+        if self.cnn_trainer is None:
+            self.cnn_trainer = CNNTrainer()
         print("🔄 Switched to CNN model for face recognition")
 
     def switch_to_insightface_model(self):
         """Switch to using InsightFace model for recognition."""
         self.use_cnn_model = False
+        self.use_embedding_model = False
+        self.use_custom_embedding_model = False
         print("🔄 Switched to InsightFace model for face recognition")
+
+    def switch_to_embedding_model(self):
+        """Switch to using the embedding classifier (if available)."""
+        self.use_cnn_model = False
+        self.use_custom_embedding_model = False
+        self.use_embedding_model = True
+        # Ensure embedding model is loaded
+        if self.embedding_trainer is None:
+            self.embedding_trainer = EmbeddingTrainer()
+        self.embedding_model_available = self.embedding_trainer.load_if_available()
+        if self.embedding_model_available:
+            print("🔄 Switched to Embedding classifier for face recognition")
+        else:
+            print("⚠️ Embedding classifier not available; staying on InsightFace if needed")
+            self.use_embedding_model = False
+
+    def switch_to_custom_embedding_model(self):
+        """Switch to using the custom embedding model (independent from InsightFace embeddings)."""
+        self.use_cnn_model = False
+        self.use_embedding_model = False
+        self.use_custom_embedding_model = True
+        if self.custom_embedding_trainer is None:
+            self.custom_embedding_trainer = CustomEmbeddingTrainer()
+        self.custom_embedding_model_available = self.custom_embedding_trainer.load_if_available()
+        if self.custom_embedding_model_available:
+            print("🔄 Switched to Custom Embedding model for face recognition")
+        else:
+            print("⚠️ Custom Embedding model not available; staying on InsightFace if needed")
+            self.use_custom_embedding_model = False
 
     def get_current_model_info(self) -> Dict[str, Any]:
         """Get information about the currently active model.
@@ -343,20 +432,81 @@ class AttendanceSystem:
         Returns:
             Dictionary with model information
         """
+        if self.use_cnn_model:
+            current = "CNN"
+        elif self.use_custom_embedding_model and self.custom_embedding_trainer is not None and self.custom_embedding_trainer._embedding_model is not None:
+            current = "CustomEmbedding"
+        elif self.use_embedding_model and self.embedding_trainer is not None and self.embedding_trainer.model is not None:
+            current = "Embedding"
+        else:
+            current = "InsightFace"
+
+        # Compute on-disk availability of models to enable toggles without pre-loading heavy trainers
+        try:
+            # CNN artifacts
+            cnn_model_path = os.path.join(CNN_MODELS_DIR, "custom_face_model.keras")
+            cnn_encoder_path = os.path.join(CNN_MODELS_DIR, "label_encoder.pkl")
+            cnn_files_exist = os.path.exists(cnn_model_path) and os.path.exists(cnn_encoder_path)
+        except Exception:
+            cnn_files_exist = False
+
+        try:
+            # Embedding classifier artifacts
+            embed_dir = os.path.join(BASE_DIR, "embedding_models")
+            embed_model_path = os.path.join(embed_dir, "embedding_classifier.joblib")
+            embed_encoder_path = os.path.join(embed_dir, "label_encoder.pkl")
+            emb_files_exist = os.path.exists(embed_model_path) and os.path.exists(embed_encoder_path)
+        except Exception:
+            emb_files_exist = False
+
+        try:
+            # Custom embedding artifacts
+            cust_dir = os.path.join(BASE_DIR, "custom_embedding_models")
+            cust_model_path = os.path.join(cust_dir, "custom_embedding_model.keras")
+            cust_encoder_path = os.path.join(cust_dir, "label_encoder.pkl")
+            cust_centroids_path = os.path.join(cust_dir, "class_centroids.npy")
+            cust_files_exist = (
+                os.path.exists(cust_model_path)
+                and os.path.exists(cust_encoder_path)
+                and os.path.exists(cust_centroids_path)
+            )
+        except Exception:
+            cust_files_exist = False
+
         info = {
-            "current_model": "CNN" if self.use_cnn_model else "InsightFace",
-            "cnn_model_available": self.cnn_trainer.model is not None,
+            "current_model": current,
+            # Consider a model available if it's already loaded OR required files exist on disk
+            "cnn_model_available": bool((self.cnn_trainer and self.cnn_trainer.model is not None) or cnn_files_exist),
+            "custom_embedding_model_available": bool((self.custom_embedding_trainer and self.custom_embedding_trainer._embedding_model is not None) or cust_files_exist),
+            "embedding_model_available": bool((self.embedding_trainer and self.embedding_trainer.model is not None) or emb_files_exist),
             "insightface_available": True,  # Always available
-            "auto_training_enabled": self.cnn_trainer.auto_training_enabled,
         }
 
-        if self.cnn_trainer.model is not None:
+        if self.cnn_trainer is not None and self.cnn_trainer.model is not None:
             info["cnn_training_status"] = self.cnn_trainer.get_training_status()
+        if self.embedding_trainer is not None and self.embedding_trainer.model is not None:
+            try:
+                info["embedding_training_status"] = {
+                    "num_classes": len(self.embedding_trainer.label_encoder.classes_),
+                    "model_path": getattr(self.embedding_trainer, "model_path", None),
+                }
+            except Exception:
+                pass
+        if self.custom_embedding_trainer is not None and self.custom_embedding_trainer._embedding_model is not None:
+            try:
+                info["custom_embedding_training_status"] = {
+                    "num_classes": len(self.custom_embedding_trainer.label_encoder.classes_),
+                    "model_path": getattr(self.custom_embedding_trainer, "model_path", None),
+                }
+            except Exception:
+                pass
 
         return info
 
     def get_cnn_trainer(self) -> CNNTrainer:
         """Get the CNN trainer instance for training operations."""
+        if self.cnn_trainer is None:
+            self.cnn_trainer = CNNTrainer()
         return self.cnn_trainer
 
     def start_automatic_recognition(
