@@ -1,27 +1,15 @@
 {
-<<<<<<< Updated upstream
-  "timestamp": "2025-08-17T10:51:33.697568",
-  "num_classes": 66,
-  "num_samples": 1559,
-=======
-  "timestamp": "2025-08-17T16:30:48.231034",
+  "timestamp": "2025-08-17T11:59:42.947262",
   "num_classes": 67,
   "num_samples": 1591,
->>>>>>> Stashed changes
   "validation_split": 0.2,
   "solver": "saga",
   "penalty": "l2",
   "C": 1.0,
   "max_iter": 2000,
-<<<<<<< Updated upstream
-  "train_accuracy": 0.9943865276663993,
-  "val_accuracy": 0.9935897435897436,
-  "val_top3_accuracy": 0.9935897435897436,
-=======
-  "train_accuracy": 0.9960691823899371,
-  "val_accuracy": 0.987460815047022,
-  "val_top3_accuracy": 0.987460815047022,
->>>>>>> Stashed changes
+  "train_accuracy": 0.9952830188679245,
+  "val_accuracy": 0.9843260188087775,
+  "val_top3_accuracy": 0.9843260188087775,
   "stratified_split": true,
   "classes": [
     "Abdullah_Gul",
@@ -67,10 +55,7 @@
     "Mike_Weir",
     "Muhammad_Ali",
     "Nestor_Kirchner",
-<<<<<<< Updated upstream
-=======
     "Nethmi",
->>>>>>> Stashed changes
     "Nicole_Kidman",
     "Norah_Jones",
     "Paradorn_Srichaphan",
