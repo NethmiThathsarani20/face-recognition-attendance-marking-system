@@ -226,11 +226,22 @@ class AttendanceSystem:
             record: Attendance record dictionary
         """
         try:
+            # Ensure attendance directory exists
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+            # Create file with empty list if it doesn't exist yet
+            if not os.path.exists(file_path):
+                with open(file_path, "w") as f:
+                    json.dump([], f)
+
             # Load existing records
-            records = []
-            if os.path.exists(file_path):
-                with open(file_path) as f:
+            with open(file_path) as f:
+                try:
                     records = json.load(f)
+                    if not isinstance(records, list):  # Prevents corruption
+                        records = []
+                except json.JSONDecodeError:
+                    records = []
 
             # Add new record
             records.append(record)
