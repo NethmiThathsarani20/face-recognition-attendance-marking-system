@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-25T05:24:30.231188",
+  "timestamp": "2025-10-26T18:14:39.150681",
   "num_classes": 67,
   "num_samples": 1591,
   "validation_split": 0.2,
@@ -7,9 +7,9 @@
   "penalty": "l2",
   "C": 1.0,
   "max_iter": 2000,
-  "train_accuracy": 0.9952830188679245,
-  "val_accuracy": 0.9843260188087775,
-  "val_top3_accuracy": 0.9843260188087775,
+  "train_accuracy": 0.9944968553459119,
+  "val_accuracy": 0.9937304075235109,
+  "val_top3_accuracy": 0.9937304075235109,
   "stratified_split": true,
   "classes": [
     "Abdullah_Gul",
