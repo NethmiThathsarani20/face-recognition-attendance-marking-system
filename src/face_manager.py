@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 from insightface.app import FaceAnalysis
+from insightface.utils.transform import transform
 import onnxruntime as ort
 
 # Handle both relative and absolute imports
@@ -45,10 +46,26 @@ class FaceManager:
         providers = [p for p in ("CoreMLExecutionProvider", "CPUExecutionProvider") if p in available]
         if not providers:
             providers = ["CPUExecutionProvider"]
-        self.app = FaceAnalysis(name=FACE_MODEL_NAME, providers=providers)
+        # Initialize the main face analysis app
+        self.app = FaceAnalysis(
+            name='buffalo_l',
+            providers=providers,
+            allowed_modules=['detection', 'recognition']
+        )
         self.app.prepare(
             ctx_id=0, det_size=DETECTION_SIZE, det_thresh=DETECTION_THRESHOLD,
         )
+        
+        # Initialize anti-spoofing
+        try:
+            from insightface.model_zoo import get_model
+            self.anti_spoof = get_model('antispoof')
+            self.has_anti_spoof = True
+            print("✅ Anti-spoofing model loaded successfully")
+        except Exception as e:
+            print(f"⚠️ Anti-spoofing model not available: {e}")
+            self.anti_spoof = None
+            self.has_anti_spoof = False
         self.face_database = self._load_face_database()
 
     def detect_faces(self, image: np.ndarray) -> List[Any]:
@@ -126,15 +143,20 @@ class FaceManager:
 
         return self.add_user_images(user_name, image_paths)
 
-    def recognize_face(self, image: np.ndarray) -> Optional[Tuple[str, float]]:
-        """Recognize a face in the image against the database.
+    def recognize_face(self, image: np.ndarray) -> Optional[Tuple[str, float, bool]]:
+        """Recognize a face in the image against the database and check for spoofing.
 
         Args:
             image: Input image as numpy array
 
         Returns:
-            Tuple of (user_name, similarity_score) or None if no match
+            Tuple of (user_name, similarity_score, is_real_face) or None if no match
         """
+        # First check if it's a real face
+        is_real, _ = self.detect_spoof(image)
+        if not is_real:
+            return None
+            
         query_embedding = self.get_face_embedding(image)
         if query_embedding is None:
             return None
@@ -153,7 +175,7 @@ class FaceManager:
                 if best_match:
                     self._save_recognized_face(image, best_match)
 
-        return (best_match, float(best_score)) if best_match else None
+        return (best_match, float(best_score), True) if best_match else None
 
     def load_all_database_users(self) -> int:
         """Load all users from the database folder structure.
@@ -220,6 +242,56 @@ class FaceManager:
         file_path = os.path.join(user_dir, filename)
         
         cv2.imwrite(file_path, image)
+
+    def detect_spoof(self, image: np.ndarray) -> Tuple[bool, List[float]]:
+        """Detect if the face in the image is real or a spoof attempt.
+        
+        Args:
+            image: Input image as numpy array
+            
+        Returns:
+            Tuple of (is_real, scores) where is_real is True for a real face,
+            and scores are the liveness probabilities
+        """
+        if not self.has_anti_spoof:
+            print("⚠️ Anti-spoofing model not available")
+            return True, []
+
+        faces = self.detect_faces(image)
+        if not faces:
+            print("🔍 No faces detected for spoof check")
+            return False, []
+        
+        try:
+            face = faces[0]
+            # Get face bbox and landmarks
+            bbox = face.bbox
+            landmarks = face.landmark_2d_106 if hasattr(face, 'landmark_2d_106') else face.landmark_2d
+
+            if landmarks is None:
+                print("⚠️ No facial landmarks detected")
+                return True, []
+
+            # Crop and align face
+            h, w = image.shape[:2]
+            img_face = transform(image, landmarks, "112,112", True)
+            
+            # Get anti-spoofing score
+            score = self.anti_spoof.get(img_face)
+            if score is not None:
+                score = float(score[0])  # Get the real face probability
+                print(f"🔐 Anti-Spoofing Score: {score:.4f}")
+                is_real = score > 0.5  # Higher score means more likely to be real
+                print(f"Face is {'REAL' if is_real else 'FAKE'}")
+                return is_real, [score]
+            else:
+                print("⚠️ Could not get anti-spoofing score")
+                
+        except Exception as e:
+            print(f"⚠️ Error in anti-spoofing detection: {e}")
+            
+        print("ℹ️ Falling back to default real face assumption")
+        return True, []
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Preprocess image for better face detection.

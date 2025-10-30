@@ -125,12 +125,17 @@ class AttendanceSystem:
             print("❌ No face detected or recognition failed")
             return self._create_result(False, "No face detected or recognition failed")
         
-        user_name, confidence = recognition_result
+        user_name, confidence, is_real = recognition_result
+        
+        if not is_real:
+            print("⚠️ Spoof detection failed - fake face detected")
+            return self._create_result(False, "Spoof detection failed - fake face detected", 
+                                    {"confidence": float(confidence) if confidence else 0.0})
         
         if user_name is None:
             print("❓ Unknown person detected")
             return self._create_result(False, "Unknown person detected", 
-                                      {"confidence": float(confidence) if confidence else 0.0})
+                                    {"confidence": float(confidence) if confidence else 0.0})
         
         print(f"✓ Recognized user: {user_name} with confidence: {confidence:.4f}")
 
@@ -551,7 +556,11 @@ class AttendanceSystem:
                 recognition_result = self.face_manager.recognize_face(frame)
 
                 if recognition_result is not None:
-                    user_name, confidence = recognition_result
+                    user_name, confidence, is_real = recognition_result
+                    if not is_real:
+                        print("⚠️ Spoof detection failed - fake face detected")
+                        continue
+                        
                     if confidence >= SIMILARITY_THRESHOLD:  # Only save if confidence meets threshold
                         # Save recognized face to user's database folder
                         user_folder = os.path.join(DATABASE_DIR, user_name)
