@@ -440,55 +440,56 @@ class CNNTrainer:
         class_names = list(self.label_encoder.classes_)
 
         def _plot_confusion(m, title: str, normalize: bool, filename: str) -> None:
-            """Plot confusion matrix with settings that stay readable for many classes.
-
-            For normalized matrices with many classes we hide the per-cell text and rely
-            on colors + colorbar so the image is not messy.
-            """
+            """Plot confusion matrix with improved readability for many classes."""
             n_classes = len(class_names)
-            # Make the figure larger when there are many classes.
-            base_size = 8.0 if n_classes <= 20 else min(0.3 * n_classes, 20.0)
+            # Larger figures for better readability with many classes
+            base_size = max(14, 0.25 * n_classes)
             fig, ax = plt.subplots(figsize=(base_size, base_size))
 
-            im = ax.imshow(m, interpolation="nearest", cmap=plt.cm.Blues)
-            ax.figure.colorbar(im, ax=ax)
-            ax.set(xticks=np.arange(m.shape[1]), yticks=np.arange(m.shape[0]))
-            ax.set_xticklabels(class_names, rotation=90, ha="center")
-            ax.set_yticklabels(class_names)
-            ax.set_ylabel("True label")
-            ax.set_xlabel("Predicted label")
-            ax.set_title(title)
+            im = ax.imshow(m, interpolation="nearest", cmap=plt.cm.Blues, aspect='auto')
+            cbar = ax.figure.colorbar(im, ax=ax, pad=0.02)
+            cbar.set_label('Count' if not normalize else 'Normalized Value', rotation=270, labelpad=20)
+            
+            # Set ticks for all classes
+            ax.set_xticks(np.arange(n_classes))
+            ax.set_yticks(np.arange(n_classes))
+            ax.set_xticklabels(class_names, rotation=90, ha="right", fontsize=7)
+            ax.set_yticklabels(class_names, fontsize=7)
+            
+            ax.set_ylabel("True label", fontsize=12, fontweight='bold')
+            ax.set_xlabel("Predicted label", fontsize=12, fontweight='bold')
+            ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
 
-            # Smaller tick labels for big matrices
-            if n_classes <= 10:
-                label_size = 10
-            elif n_classes <= 25:
-                label_size = 8
-            else:
-                label_size = 5
-            ax.tick_params(axis="x", labelsize=label_size)
-            ax.tick_params(axis="y", labelsize=label_size)
+            # Add gridlines for better visibility
+            ax.set_xticks(np.arange(n_classes) - 0.5, minor=True)
+            ax.set_yticks(np.arange(n_classes) - 0.5, minor=True)
+            ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5, alpha=0.3)
 
-            # For large, normalized matrices we skip cell text to avoid clutter.
-            add_text = not (normalize and n_classes > 25)
-
-            if add_text:
-                fmt = ".2f" if normalize else "d"
-                thresh = m.max() / 2.0 if m.size else 0.0
-                for i in range(m.shape[0]):
-                    for j in range(m.shape[1]):
-                        ax.text(
-                            j,
-                            i,
-                            format(m[i, j], fmt),
-                            ha="center",
-                            va="center",
-                            color="white" if m[i, j] > thresh else "black",
-                            fontsize=6 if n_classes > 25 else 8,
-                        )
+            # Add cell text values
+            fmt = ".2f" if normalize else "d"
+            thresh = m.max() / 2.0 if m.size else 0.0
+            
+            for i in range(m.shape[0]):
+                for j in range(m.shape[1]):
+                    value = m[i, j]
+                    # Only show non-zero values for normalized matrices to reduce clutter
+                    if normalize and value < 0.01:
+                        continue
+                    
+                    text_color = "white" if value > thresh else "black"
+                    fontsize = 6 if n_classes > 40 else 7 if n_classes > 25 else 8
+                    
+                    ax.text(
+                        j, i,
+                        format(value, fmt),
+                        ha="center", va="center",
+                        color=text_color,
+                        fontsize=fontsize,
+                        fontweight='bold' if value > thresh else 'normal'
+                    )
 
             plt.tight_layout()
-            fig.savefig(os.path.join(self.models_dir, filename), dpi=200)
+            fig.savefig(os.path.join(self.models_dir, filename), dpi=300, bbox_inches='tight')
             plt.close(fig)
 
         _plot_confusion(cm, "CNN Confusion Matrix", False, "cnn_confusion_matrix.png")
