@@ -14,8 +14,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import DATABASE_DIR
 
-# ESP32-CAM typically works with images up to 640x480 or smaller
-MAX_SIZE = 640
+# ESP32-CAM configuration
+MAX_SIZE = 640  # Maximum dimension (width or height)
+JPEG_QUALITY = 95  # Quality for JPEG compression (1-100)
+SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.bmp')  # Image file extensions
 
 
 def resize_if_needed(image_path: str, max_size: int = MAX_SIZE) -> bool:
@@ -47,7 +49,7 @@ def resize_if_needed(image_path: str, max_size: int = MAX_SIZE) -> bool:
             
             # Resize and save
             img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            img_resized.save(image_path, quality=95)
+            img_resized.save(image_path, quality=JPEG_QUALITY)
             
             print(f"  Resized {os.path.basename(image_path)}: {width}x{height} → {new_width}x{new_height}")
             return True
@@ -78,7 +80,7 @@ def main():
         
         user_resized = 0
         for image_file in os.listdir(user_folder):
-            if image_file.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp')):
+            if image_file.lower().endswith(SUPPORTED_EXTENSIONS):
                 image_path = os.path.join(user_folder, image_file)
                 total_images += 1
                 

@@ -51,6 +51,12 @@ DEFAULT_EPOCHS = 50
 DEFAULT_VALIDATION_SPLIT = 0.2
 DEFAULT_FRAME_INTERVAL = 30
 PADDING = 20
+
+# Haar Cascade face detection parameters
+HAAR_SCALE_FACTOR = 1.1  # Compensate for faces closer to the camera
+HAAR_MIN_NEIGHBORS = 5  # Higher value = fewer false positives
+HAAR_MIN_SIZE = (60, 60)  # Minimum face size to detect
+
 # Use native Keras format to avoid HDF5 legacy warnings
 MODEL_FILENAME = "custom_face_model.keras"
 ENCODER_FILENAME = "label_encoder.pkl"
@@ -61,7 +67,17 @@ class CNNTrainer:
     """CNN Training class for custom face recognition model."""
 
     def __init__(self):
-        """Initialize CNN trainer with OpenCV Haar Cascade for face detection."""
+        """
+        Initialize CNN trainer with OpenCV Haar Cascade for face detection.
+        
+        Note: This implementation uses OpenCV Haar Cascade instead of InsightFace,
+        making it independent and lightweight. However, Haar Cascade may have:
+        - Lower detection accuracy compared to deep learning models
+        - Difficulty with non-frontal faces or poor lighting
+        - Different preprocessing characteristics
+        
+        For production use, prefer the embedding classifier which uses InsightFace.
+        """
         # Reproducibility
         np.random.seed(42)
         random.seed(42)
@@ -69,9 +85,18 @@ class CNNTrainer:
             tf.random.set_seed(42)  # type: ignore
         except Exception:
             pass
-        # Use OpenCV Haar Cascade instead of InsightFace
+        
+        # Initialize OpenCV Haar Cascade face detector
         cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         self.face_detector = cv2.CascadeClassifier(cascade_path)
+        
+        # Verify the cascade loaded successfully
+        if self.face_detector.empty():
+            raise RuntimeError(
+                f"Failed to load Haar Cascade classifier from {cascade_path}. "
+                "Ensure OpenCV is properly installed with haar cascade data files."
+            )
+        
         self.model = None
         self.label_encoder = LabelEncoder()
         self.training_data = []
@@ -270,7 +295,12 @@ class CNNTrainer:
 
             # Use OpenCV Haar Cascade to detect faces
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            faces = self.face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            faces = self.face_detector.detectMultiScale(
+                gray, 
+                scaleFactor=HAAR_SCALE_FACTOR, 
+                minNeighbors=HAAR_MIN_NEIGHBORS, 
+                minSize=HAAR_MIN_SIZE
+            )
             
             if len(faces) == 0:
                 return None
@@ -669,7 +699,12 @@ class CNNTrainer:
 
         # Use OpenCV Haar Cascade to detect faces
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        faces = self.face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+        faces = self.face_detector.detectMultiScale(
+            gray,
+            scaleFactor=HAAR_SCALE_FACTOR,
+            minNeighbors=HAAR_MIN_NEIGHBORS,
+            minSize=HAAR_MIN_SIZE
+        )
         
         if len(faces) == 0:
             return None
@@ -826,7 +861,12 @@ class CNNTrainer:
         """Extract face from video frame using OpenCV Haar Cascade."""
         try:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = self.face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            faces = self.face_detector.detectMultiScale(
+                gray,
+                scaleFactor=HAAR_SCALE_FACTOR,
+                minNeighbors=HAAR_MIN_NEIGHBORS,
+                minSize=HAAR_MIN_SIZE
+            )
             
             if len(faces) == 0:
                 return None
