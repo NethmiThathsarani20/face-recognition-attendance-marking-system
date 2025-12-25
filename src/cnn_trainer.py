@@ -39,11 +39,9 @@ except ImportError:
 try:
     from .config import DATABASE_DIR
     from .exceptions import InsufficientDataError, ModelTrainingError, VideoProcessingError
-    from .face_manager import FaceManager
 except ImportError:
     from config import DATABASE_DIR
     from exceptions import InsufficientDataError, ModelTrainingError, VideoProcessingError
-    from face_manager import FaceManager
 
 
 # Constants
@@ -63,7 +61,7 @@ class CNNTrainer:
     """CNN Training class for custom face recognition model."""
 
     def __init__(self):
-        """Initialize CNN trainer with InsightFace for data preparation (always fresh)."""
+        """Initialize CNN trainer with OpenCV Haar Cascade for face detection."""
         # Reproducibility
         np.random.seed(42)
         random.seed(42)
@@ -71,7 +69,9 @@ class CNNTrainer:
             tf.random.set_seed(42)  # type: ignore
         except Exception:
             pass
-        self.face_manager = FaceManager()
+        # Use OpenCV Haar Cascade instead of InsightFace
+        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        self.face_detector = cv2.CascadeClassifier(cascade_path)
         self.model = None
         self.label_encoder = LabelEncoder()
         self.training_data = []
@@ -195,7 +195,7 @@ class CNNTrainer:
 
     def prepare_training_data(self) -> bool:
         """
-        Prepare training data using InsightFace for face detection and alignment.
+        Prepare training data using OpenCV Haar Cascade for face detection.
 
         Returns:
             True if data preparation successful, False otherwise
@@ -255,7 +255,7 @@ class CNNTrainer:
 
     def _extract_and_align_face(self, image_path: str) -> Optional[np.ndarray]:
         """
-        Extract and align face from image using InsightFace.
+        Extract and align face from image using OpenCV Haar Cascade.
 
         Args:
             image_path: Path to the image file
@@ -268,24 +268,22 @@ class CNNTrainer:
             if image is None:
                 return None
 
-            # Use InsightFace to detect faces
-            faces = self.face_manager.detect_faces(image)
-            if not faces:
+            # Use OpenCV Haar Cascade to detect faces
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            faces = self.face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            
+            if len(faces) == 0:
                 return None
 
             # Get the first face
-            face = faces[0]
-
-            # Extract face region using bounding box
-            bbox = face.bbox.astype(int)
-            x1, y1, x2, y2 = bbox
+            x, y, w, h = faces[0]
 
             # Add padding
             padding = PADDING
-            x1 = max(0, x1 - padding)
-            y1 = max(0, y1 - padding)
-            x2 = min(image.shape[1], x2 + padding)
-            y2 = min(image.shape[0], y2 + padding)
+            x1 = max(0, x - padding)
+            y1 = max(0, y - padding)
+            x2 = min(image.shape[1], x + w + padding)
+            y2 = min(image.shape[0], y + h + padding)
 
             # Extract face region
             face_region = image[y1:y2, x1:x2]
@@ -657,7 +655,7 @@ class CNNTrainer:
         confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
     ) -> Optional[Tuple[str, float]]:
         """
-        Predict face using trained CNN model.
+        Predict face using trained CNN model with OpenCV Haar Cascade.
 
         Args:
             image: Input image
@@ -669,22 +667,22 @@ class CNNTrainer:
         if self.model is None:
             return None
 
-        # Extract and align face
-        faces = self.face_manager.detect_faces(image)
-        if not faces:
+        # Use OpenCV Haar Cascade to detect faces
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = self.face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+        
+        if len(faces) == 0:
             return None
 
         # Get first face
-        face = faces[0]
-        bbox = face.bbox.astype(int)
-        x1, y1, x2, y2 = bbox
+        x, y, w, h = faces[0]
 
         # Add padding
         padding = PADDING
-        x1 = max(0, x1 - padding)
-        y1 = max(0, y1 - padding)
-        x2 = min(image.shape[1], x2 + padding)
-        y2 = min(image.shape[0], y2 + padding)
+        x1 = max(0, x - padding)
+        y1 = max(0, y - padding)
+        x2 = min(image.shape[1], x + w + padding)
+        y2 = min(image.shape[0], y + h + padding)
 
         # Extract and prepare face
         face_region = image[y1:y2, x1:x2]
@@ -825,23 +823,23 @@ class CNNTrainer:
     def _extract_and_align_face_from_frame(
         self, frame: np.ndarray
     ) -> Optional[np.ndarray]:
-        """Extract face from video frame."""
+        """Extract face from video frame using OpenCV Haar Cascade."""
         try:
-            faces = self.face_manager.detect_faces(frame)
-            if not faces:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = self.face_detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            
+            if len(faces) == 0:
                 return None
 
             # Get the first face
-            face = faces[0]
-            bbox = face.bbox.astype(int)
-            x1, y1, x2, y2 = bbox
+            x, y, w, h = faces[0]
 
             # Add padding
             padding = PADDING
-            x1 = max(0, x1 - padding)
-            y1 = max(0, y1 - padding)
-            x2 = min(frame.shape[1], x2 + padding)
-            y2 = min(frame.shape[0], y2 + padding)
+            x1 = max(0, x - padding)
+            y1 = max(0, y - padding)
+            x2 = min(frame.shape[1], x + w + padding)
+            y2 = min(frame.shape[0], y + h + padding)
 
             # Extract face region
             face_region = frame[y1:y2, x1:x2]
