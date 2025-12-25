@@ -6,5 +6,5 @@ onnxruntime
 Pillow
 werkzeug
 tensorflow>=2.10.0
-scikit-learn
+scikit-learn>=1.0.0
 matplotlib

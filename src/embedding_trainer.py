@@ -21,6 +21,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_curve
 from sklearn.model_selection import train_test_split
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import LabelEncoder, label_binarize
 from sklearn.utils.class_weight import compute_class_weight
 import joblib
@@ -75,7 +76,7 @@ class EmbeddingTrainer:
         self.encoder_path = os.path.join(self.models_dir, ENCODER_FILENAME)
         self.training_log_path = os.path.join(self.models_dir, LOG_FILENAME)
 
-        self.model: Optional[LogisticRegression] = None
+        self.model: Optional[OneVsRestClassifier] = None
 
     def load_if_available(self) -> bool:
         """Load saved model and encoder if present."""
@@ -210,16 +211,17 @@ class EmbeddingTrainer:
         class_weight = {int(c): float(w) for c, w in zip(classes, weights_vec)}
 
         # Multinomial Logistic Regression on L2-normalized embeddings
-        self.model = LogisticRegression(
+        # Use OneVsRestClassifier wrapper for robust multi-class support across sklearn versions
+        base_lr = LogisticRegression(
             C=self.config.C,
             penalty=self.config.penalty,
             solver=self.config.solver,
             max_iter=self.config.max_iter,
             n_jobs=self.config.n_jobs,
-            multi_class="multinomial",
             class_weight=class_weight,
             random_state=self.config.random_state,
         )
+        self.model = OneVsRestClassifier(base_lr)
 
         print("🚀 Training embedding classifier (LogisticRegression)...")
         self.model.fit(X_train, y_train)

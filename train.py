@@ -59,7 +59,7 @@ def train_custom_embedding(args) -> bool:
     cfg = CustomEmbeddingConfig(
         validation_split=args.validation_split,
         epochs=args.epochs,
-    embedding_dim=args.embedding_dim,
+        embedding_dim=args.embedding_dim,
     )
     cet = CustomEmbeddingTrainer(config=cfg)
     cet.prepare_training_data()
