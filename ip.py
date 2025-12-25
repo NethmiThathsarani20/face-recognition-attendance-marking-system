@@ -13,7 +13,13 @@ Strategy:
 Works on Windows, macOS and Linux (uses platform-specific ping flags).
 
 Usage:
-    python find_ip_by_mac.py 80:f3:da:62:14:c0
+    python ip.py d8:3a:dd:51:6b:3c
+    Found IP(s) for MAC d8:3a:dd:51:6b:3c
+    10.175.56.231
+
+    python ip.py 80:f3:da:62:14:c0
+    Found IP(s) for MAC 80:f3:da:62:14:c0
+    10.175.56.131
 
 Optional flags: --prefix, --timeout, --workers, --no-ping
 """
