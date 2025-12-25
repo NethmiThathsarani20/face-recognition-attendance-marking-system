@@ -20,9 +20,9 @@ from src.custom_embedding_trainer import CustomEmbeddingTrainer, CustomEmbedding
 
 ess = """
 Training modes:
-- cnn: end-to-end lightweight CNN classifier
-- embedding: InsightFace embedding + multinomial logistic regression
-- custom-embedding: independent embedding model (no InsightFace embeddings)
+- **cnn**: End-to-end lightweight CNN classifier (uses OpenCV Haar Cascade for face detection, no InsightFace)
+- **embedding**: InsightFace embedding + multinomial logistic regression (production-grade)
+- **custom-embedding**: Independent embedding model (uses OpenCV Haar Cascade, no InsightFace embeddings)
 """
 
 

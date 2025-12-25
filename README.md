@@ -4,7 +4,7 @@ A comprehensive face recognition attendance system powered by InsightFace for pr
 
 ## 📄 Abstract (Edge + Cloud Training)
 
-This project delivers an IoT-enabled, edge-assisted attendance system that recognizes known users using InsightFace for detection, alignment, and embeddings, paired with a lightweight embedding-based classifier for production. ESP32‑CAM devices stream faces to a Raspberry Pi that acts as the edge host for the web UI, storage, and device/network orchestration; all resource‑intensive training is automated in the cloud via GitHub Actions instead of running on the Pi. On the current dataset (65 users; 1,545 embeddings), the InsightFace + LogisticRegression pipeline achieves 0.994 train accuracy and 0.984 validation accuracy (top‑3: 0.984). Experimental baselines trained on the same dataset perform poorly: the lightweight CNN yields ~3.9% validation accuracy (top‑3: ~6.1%) and the custom‑embedding model ~1.0% validation accuracy. These experimental paths remain available for research, while the production‑grade path is InsightFace embeddings + a simple classifier. The end‑to‑end pipeline covers acquisition, detection, alignment, embedding, and matching against a persistent database, with daily JSON attendance logs, and emphasizes modularity, reliability, and maintainability for scalable deployment.
+This project delivers an IoT-enabled, edge-assisted attendance system that recognizes known users using InsightFace for the embedding classifier, with optional CNN and custom-embedding models for research purposes. ESP32‑CAM devices stream faces to a Raspberry Pi that acts as the edge host for the web UI, storage, and device/network orchestration; all resource‑intensive training is automated in the cloud via GitHub Actions instead of running on the Pi. On the current dataset (67 users; 1,595 embeddings), the InsightFace + LogisticRegression pipeline achieves 0.994 train accuracy and 0.984 validation accuracy (top‑3: 0.984). Experimental baselines trained on the same dataset perform poorly: the lightweight CNN (using OpenCV Haar Cascade for face detection) yields ~3.9% validation accuracy (top‑3: ~6.1%) and the custom‑embedding model (also using Haar Cascade) ~1.0% validation accuracy. These experimental paths remain available for research, while the production‑grade path is InsightFace embeddings + a simple classifier. The end‑to‑end pipeline covers acquisition, detection, alignment, embedding, and matching against a persistent database, with daily JSON attendance logs, and emphasizes modularity, reliability, and maintainability for scalable deployment.
 
 Keywords
 face recognition; attendance system; insightface; convolutional neural network; computer vision; esp32-cam
@@ -24,7 +24,10 @@ face recognition; attendance system; insightface; convolutional neural network; 
 - **Real-Time Updates**: Live attendance tracking with immediate feedback
 
 ### Advanced Capabilities
-- **Training Modes (optional)**: Lightweight CNN, embedding-based classifier (InsightFace + Logistic Regression), and an experimental custom-embedding model
+- **Training Modes (optional)**: 
+  - **Embedding classifier (Production)**: InsightFace + Logistic Regression - uses InsightFace for face detection and embeddings
+  - **Lightweight CNN (Experimental)**: Uses OpenCV Haar Cascade for face detection (no InsightFace dependency)
+  - **Custom-embedding model (Experimental)**: Uses OpenCV Haar Cascade for face detection and learns its own embeddings (no InsightFace dependency)
 - **Video Processing**: Extract training data from video uploads
 - **Automatic Image Management**: Recognized faces saved to user folders with timestamps
 - **Comprehensive Error Handling**: Custom exception framework with graceful recovery
