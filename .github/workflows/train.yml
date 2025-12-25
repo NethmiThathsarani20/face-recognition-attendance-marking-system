@@ -48,6 +48,16 @@ jobs:
         run: |
           python train.py --epochs 30 --validation-split 0.2
 
+      - name: Upload training artifacts (models + charts)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: |
+            cnn_models/**
+            embedding_models/**
+            custom_embedding_models/**
+
       - name: Commit and push trained models
         if: always()
         run: |

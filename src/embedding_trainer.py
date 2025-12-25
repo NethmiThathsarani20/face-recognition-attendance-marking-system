@@ -10,18 +10,24 @@ from __future__ import annotations
 
 import json
 import os
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
+import matplotlib
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_curve
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder, label_binarize
 from sklearn.utils.class_weight import compute_class_weight
 import joblib
+
+# Use non-interactive backend for CI / headless environments
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 # Local imports
 try:
@@ -89,6 +95,39 @@ class EmbeddingTrainer:
                 files.append(os.path.join(user_dir, name))
         return files
 
+    def _balance_dataset(self) -> None:
+        """Balance the embedding dataset by oversampling minority classes."""
+        if not self.X or not self.y:
+            return
+
+        labels = np.array(self.y)
+        counts = Counter(labels)
+        max_count = max(counts.values())
+
+        balanced_X: List[np.ndarray] = []
+        balanced_y: List[str] = []
+
+        for cls, _ in counts.items():
+            idx = np.where(labels == cls)[0]
+            if not len(idx):
+                continue
+            if len(idx) < max_count:
+                extra = np.random.choice(idx, size=max_count - len(idx), replace=True)
+                all_idx = np.concatenate([idx, extra])
+            else:
+                all_idx = idx
+            for i in all_idx:
+                balanced_X.append(self.X[int(i)])
+                balanced_y.append(cls)
+
+        self.X = balanced_X
+        self.y = balanced_y
+
+        print(
+            f"\U0001F4CA Balanced embedding dataset to {max_count} samples per class "
+            f"across {len(counts)} classes (total {len(self.X)} samples).",
+        )
+
     def prepare_training_data(self) -> bool:
         """Extract embeddings for all images in DATABASE_DIR by user folders."""
         self.X = []
@@ -130,6 +169,9 @@ class EmbeddingTrainer:
 
         if total == 0:
             raise InsufficientDataError("No embeddings extracted from database images")
+
+        # Balance dataset to handle imbalanced databases
+        self._balance_dataset()
 
         return True
 
@@ -187,6 +229,147 @@ class EmbeddingTrainer:
         val_pred = self.model.predict(X_val)
         train_acc = float(accuracy_score(y_train, train_pred))
         val_acc = float(accuracy_score(y_val, val_pred))
+
+        # ---------------- Evaluation curves and confusion matrices ----------------
+        if hasattr(self.model, "predict_proba"):
+            val_proba = self.model.predict_proba(X_val)
+        else:
+            # Fallback: use one-hot based on predictions
+            num_classes = len(self.label_encoder.classes_)
+            val_proba = np.zeros((len(y_val), num_classes), dtype=np.float32)
+            for i, p in enumerate(val_pred):
+                val_proba[i, int(p)] = 1.0
+
+        num_classes = len(self.label_encoder.classes_)
+
+        # Confusion matrices
+        cm = confusion_matrix(y_val, val_pred, labels=list(range(num_classes)))
+        with np.errstate(invalid="ignore", divide="ignore"):
+            cm_norm = cm.astype("float") / cm.sum(axis=1, keepdims=True)
+            cm_norm = np.nan_to_num(cm_norm)
+
+        class_names = list(self.label_encoder.classes_)
+
+        def _plot_confusion(m, title: str, normalize: bool, filename: str) -> None:
+            """Plot confusion matrix with settings that stay readable for many classes.
+
+            For normalized matrices with many classes we hide the per-cell text and rely
+            on colors + colorbar so the image is not messy.
+            """
+            n_classes = len(class_names)
+            # Make the figure larger when there are many classes.
+            base_size = 8.0 if n_classes <= 20 else min(0.3 * n_classes, 20.0)
+            fig, ax = plt.subplots(figsize=(base_size, base_size))
+
+            im = ax.imshow(m, interpolation="nearest", cmap=plt.cm.Blues)
+            ax.figure.colorbar(im, ax=ax)
+            ax.set(xticks=np.arange(m.shape[1]), yticks=np.arange(m.shape[0]))
+            ax.set_xticklabels(class_names, rotation=90, ha="center")
+            ax.set_yticklabels(class_names)
+            ax.set_ylabel("True label")
+            ax.set_xlabel("Predicted label")
+            ax.set_title(title)
+
+            # Smaller tick labels for big matrices
+            if n_classes <= 10:
+                label_size = 10
+            elif n_classes <= 25:
+                label_size = 8
+            else:
+                label_size = 5
+            ax.tick_params(axis="x", labelsize=label_size)
+            ax.tick_params(axis="y", labelsize=label_size)
+
+            # For large, normalized matrices we skip cell text to avoid clutter.
+            add_text = not (normalize and n_classes > 25)
+
+            if add_text:
+                fmt = ".2f" if normalize else "d"
+                thresh = m.max() / 2.0 if m.size else 0.0
+                for i in range(m.shape[0]):
+                    for j in range(m.shape[1]):
+                        ax.text(
+                            j,
+                            i,
+                            format(m[i, j], fmt),
+                            ha="center",
+                            va="center",
+                            color="white" if m[i, j] > thresh else "black",
+                            fontsize=6 if n_classes > 25 else 8,
+                        )
+
+            plt.tight_layout()
+            fig.savefig(os.path.join(self.models_dir, filename), dpi=200)
+            plt.close(fig)
+
+        _plot_confusion(cm, "Embedding Confusion Matrix", False, "embedding_confusion_matrix.png")
+        _plot_confusion(
+            cm_norm,
+            "Embedding Confusion Matrix (Normalized)",
+            True,
+            "embedding_confusion_matrix_normalized.png",
+        )
+
+        # Precision-recall curve (micro-averaged)
+        y_true_bin = label_binarize(y_val, classes=list(range(num_classes)))
+        precision_pr, recall_pr, _ = precision_recall_curve(
+            y_true_bin.ravel(), val_proba.ravel(),
+        )
+        fig_pr, ax_pr = plt.subplots(figsize=(6, 5))
+        ax_pr.plot(recall_pr, precision_pr, label="micro-average")
+        ax_pr.set_xlabel("Recall")
+        ax_pr.set_ylabel("Precision")
+        ax_pr.set_title("Embedding Precision-Recall Curve (micro-avg)")
+        ax_pr.grid(True)
+        ax_pr.legend(loc="best")
+        fig_pr.savefig(
+            os.path.join(self.models_dir, "embedding_precision_recall_curve.png"),
+            dpi=150,
+        )
+        plt.close(fig_pr)
+
+        # Precision / recall vs confidence threshold
+        max_proba = np.max(val_proba, axis=1)
+        thresholds = np.linspace(0.0, 1.0, 50)
+        precisions_thr: List[float] = []
+        recalls_thr: List[float] = []
+        for thr in thresholds:
+            mask = max_proba >= thr
+            if not np.any(mask):
+                precisions_thr.append(1.0)
+                recalls_thr.append(0.0)
+                continue
+            y_sel_true = y_val[mask]
+            y_sel_pred = val_pred[mask]
+            correct = np.sum(y_sel_true == y_sel_pred)
+            precisions_thr.append(float(correct) / float(len(y_sel_pred)))
+            recalls_thr.append(float(correct) / float(len(y_val)))
+
+        fig_thr, ax_thr = plt.subplots(figsize=(6, 5))
+        ax_thr.plot(thresholds, precisions_thr, label="Precision")
+        ax_thr.plot(thresholds, recalls_thr, label="Recall")
+        ax_thr.set_xlabel("Confidence threshold")
+        ax_thr.set_ylabel("Score")
+        ax_thr.set_title("Embedding Precision / Recall vs Confidence Threshold")
+        ax_thr.grid(True)
+        ax_thr.legend(loc="best")
+        fig_thr.savefig(
+            os.path.join(self.models_dir, "embedding_precision_confidence_curve.png"),
+            dpi=150,
+        )
+        plt.close(fig_thr)
+
+        # Confidence histogram
+        fig_hist, ax_hist = plt.subplots(figsize=(6, 4))
+        ax_hist.hist(max_proba, bins=20, range=(0.0, 1.0), alpha=0.7, color="tab:blue")
+        ax_hist.set_xlabel("Predicted max confidence")
+        ax_hist.set_ylabel("Count")
+        ax_hist.set_title("Embedding Confidence Distribution (validation)")
+        fig_hist.savefig(
+            os.path.join(self.models_dir, "embedding_confidence_curve.png"),
+            dpi=150,
+        )
+        plt.close(fig_hist)
 
         # Top-3 accuracy if probabilities available
         top3_val_acc = None
