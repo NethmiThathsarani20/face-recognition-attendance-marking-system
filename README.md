@@ -47,7 +47,10 @@ Before installing, ensure you have:
 
 ## 📦 Installation
 
-> **🎯 For Visual Studio Code users:** See [QUICK_START_VS_CODE.md](QUICK_START_VS_CODE.md) for a streamlined VS Code setup guide, or [VS_CODE_SETUP.md](VS_CODE_SETUP.md) for comprehensive VS Code instructions with debugging, tasks, and extensions.
+> **🎯 For Visual Studio Code users:** 
+> - **Just want to run it?** See [HOW_TO_RUN_IN_VSCODE.md](HOW_TO_RUN_IN_VSCODE.md) - Simple steps to run the app
+> - **Need setup first?** See [QUICK_START_VS_CODE.md](QUICK_START_VS_CODE.md) - Quick setup guide
+> - **Want full details?** See [VS_CODE_SETUP.md](VS_CODE_SETUP.md) - Comprehensive guide with debugging and tasks
 
 ### Quick Install (Recommended)
 
@@ -1004,7 +1007,9 @@ python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"
 - `.github/workflows/train.yml` - CI/CD pipeline
 
 ### Support and Documentation
+- **How to Run in VS Code**: See `HOW_TO_RUN_IN_VSCODE.md` (simple run instructions)
 - **Visual Studio Code Setup**: See `QUICK_START_VS_CODE.md` (quick start) or `VS_CODE_SETUP.md` (detailed guide)
+- **Folder Structure**: See `FOLDER_STRUCTURE.md` for complete directory organization
 - **Full Setup Guide**: See `INSTRUCTIONS.md`
 - **Technical Details**: See `docs/TECHNICAL_OVERVIEW.md`
 - **Model Training**: See `docs/MODEL_TRAINING.md`
