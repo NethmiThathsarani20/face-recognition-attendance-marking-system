@@ -39,11 +39,9 @@ except ImportError:
 try:
     from .config import DATABASE_DIR
     from .exceptions import InsufficientDataError, ModelTrainingError, VideoProcessingError
-    from .face_manager import FaceManager
 except ImportError:
     from config import DATABASE_DIR
     from exceptions import InsufficientDataError, ModelTrainingError, VideoProcessingError
-    from face_manager import FaceManager
 
 
 # Constants
@@ -59,11 +57,29 @@ ENCODER_FILENAME = "label_encoder.pkl"
 LOG_FILENAME = "training_log.json"
 
 
+class HaarFaceDetector:
+    """Lightweight face detector using OpenCV Haar cascade (no InsightFace)."""
+
+    def __init__(self):
+        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        self.detector = cv2.CascadeClassifier(cascade_path)
+
+    def detect_first_face(self, image: np.ndarray) -> Optional[Tuple[int, int, int, int]]:
+        if image is None or image.size == 0:
+            return None
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = self.detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+        if len(faces) == 0:
+            return None
+        x, y, w, h = faces[0]
+        return (int(x), int(y), int(x + w), int(y + h))
+
+
 class CNNTrainer:
     """CNN Training class for custom face recognition model."""
 
     def __init__(self):
-        """Initialize CNN trainer with InsightFace for data preparation (always fresh)."""
+        """Initialize CNN trainer with Haar cascade for data preparation (no InsightFace)."""
         # Reproducibility
         np.random.seed(42)
         random.seed(42)
@@ -71,7 +87,7 @@ class CNNTrainer:
             tf.random.set_seed(42)  # type: ignore
         except Exception:
             pass
-        self.face_manager = FaceManager()
+        self.detector = HaarFaceDetector()
         self.model = None
         self.label_encoder = LabelEncoder()
         self.training_data = []
@@ -195,7 +211,7 @@ class CNNTrainer:
 
     def prepare_training_data(self) -> bool:
         """
-        Prepare training data using InsightFace for face detection and alignment.
+        Prepare training data using Haar cascade for face detection (no InsightFace).
 
         Returns:
             True if data preparation successful, False otherwise
@@ -255,7 +271,7 @@ class CNNTrainer:
 
     def _extract_and_align_face(self, image_path: str) -> Optional[np.ndarray]:
         """
-        Extract and align face from image using InsightFace.
+        Extract and align face from image using Haar cascade (no InsightFace).
 
         Args:
             image_path: Path to the image file
@@ -268,16 +284,12 @@ class CNNTrainer:
             if image is None:
                 return None
 
-            # Use InsightFace to detect faces
-            faces = self.face_manager.detect_faces(image)
-            if not faces:
+            # Use Haar cascade to detect faces (no InsightFace)
+            bbox = self.detector.detect_first_face(image)
+            if bbox is None:
                 return None
 
-            # Get the first face
-            face = faces[0]
-
             # Extract face region using bounding box
-            bbox = face.bbox.astype(int)
             x1, y1, x2, y2 = bbox
 
             # Add padding
@@ -657,7 +669,7 @@ class CNNTrainer:
         confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
     ) -> Optional[Tuple[str, float]]:
         """
-        Predict face using trained CNN model.
+        Predict face using trained CNN model (uses Haar cascade, no InsightFace).
 
         Args:
             image: Input image
@@ -669,14 +681,12 @@ class CNNTrainer:
         if self.model is None:
             return None
 
-        # Extract and align face
-        faces = self.face_manager.detect_faces(image)
-        if not faces:
+        # Extract and align face using Haar cascade (no InsightFace)
+        bbox = self.detector.detect_first_face(image)
+        if bbox is None:
             return None
 
-        # Get first face
-        face = faces[0]
-        bbox = face.bbox.astype(int)
+        # Get bounding box
         x1, y1, x2, y2 = bbox
 
         # Add padding
@@ -825,15 +835,13 @@ class CNNTrainer:
     def _extract_and_align_face_from_frame(
         self, frame: np.ndarray
     ) -> Optional[np.ndarray]:
-        """Extract face from video frame."""
+        """Extract face from video frame using Haar cascade (no InsightFace)."""
         try:
-            faces = self.face_manager.detect_faces(frame)
-            if not faces:
+            bbox = self.detector.detect_first_face(frame)
+            if bbox is None:
                 return None
 
-            # Get the first face
-            face = faces[0]
-            bbox = face.bbox.astype(int)
+            # Get bounding box
             x1, y1, x2, y2 = bbox
 
             # Add padding
