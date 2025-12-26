@@ -24,7 +24,8 @@ def run_git_command(args: List[str]) -> str:
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running git command: {e}", file=sys.stderr)
-        print(f"Error output: {e.stderr}", file=sys.stderr)
+        if e.stderr:
+            print(f"Error output: {e.stderr}", file=sys.stderr)
         return ""
 
 
