@@ -584,6 +584,47 @@ img {
     margin: 20px auto;
 }
 
+.loading-section {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.loading-content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.loading-content h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.loading-content p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--light-gray);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

@@ -39,9 +39,9 @@ def allowed_file(filename):
 @app.route("/")
 def index():
     """Main page with attendance marking options."""
-    users = attendance_system.get_user_list()
-    today_attendance = attendance_system.get_today_attendance()
-    return render_template("index.html", users=users, attendance=today_attendance)
+    # Don't initialize models on page load - load asynchronously
+    # This makes the page load instantly
+    return render_template("index.html", users=[], attendance=[])
 
 
 @app.route("/add_user")
@@ -203,6 +203,24 @@ def model_status():
         return jsonify(status)
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
+@app.route("/initialize_system", methods=["POST"])
+def initialize_system():
+    """Initialize the face recognition system in the background."""
+    try:
+        # This will trigger lazy loading of face manager
+        users = attendance_system.get_user_list()
+        today_attendance = attendance_system.get_today_attendance()
+        return jsonify({
+            "success": True,
+            "users_count": len(users),
+            "attendance_count": len(today_attendance),
+            "users": users,
+            "attendance": today_attendance
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 
 
