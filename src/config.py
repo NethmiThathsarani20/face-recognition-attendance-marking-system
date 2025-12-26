@@ -51,5 +51,6 @@ ATTENDANCE_DATE_FORMAT = "%Y-%m-%d"
 ATTENDANCE_TIME_FORMAT = "%H:%M:%S"
 
 # Model selection settings
-USE_CNN_MODEL = False  # Always use InsightFace for recognition
+USE_CNN_MODEL = False  # Not used - using embedding classifier
+USE_EMBEDDING_MODEL = True  # Use LogisticRegression + InsightFace for best performance
 CNN_CONFIDENCE_THRESHOLD = 0.7  # Only used when manually training CNN
