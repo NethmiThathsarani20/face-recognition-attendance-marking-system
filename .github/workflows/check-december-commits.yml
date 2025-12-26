@@ -1,0 +1,34 @@
+name: Check for December commits
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  check-december-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Check for December 2025 commits
+        run: |
+          python tests/test_december_commits_deleted.py
+        
+      - name: Report status
+        if: failure()
+        run: |
+          echo "❌ December 2025 commits detected!"
+          echo "Please remove all commits made in December 2025 before merging."
+          exit 1
