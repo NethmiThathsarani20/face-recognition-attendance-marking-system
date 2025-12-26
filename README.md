@@ -2,6 +2,10 @@
 
 A comprehensive face recognition attendance system powered by InsightFace for production-grade recognition, with optional custom CNN training capabilities. Features professional web interface, comprehensive camera support, and robust user management.
 
+> **📚 Need help finding the right documentation?** See [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) for a guide to all available documentation.
+>
+> **🚀 Just want to run in VS Code?** See [HOW_TO_RUN_IN_VSCODE.md](HOW_TO_RUN_IN_VSCODE.md) for simple run instructions.
+
 ## 📄 Abstract (Edge + Cloud Training)
 
 This project delivers an IoT-enabled, edge-assisted attendance system that recognizes known users using InsightFace for detection, alignment, and embeddings, paired with a lightweight embedding-based classifier for production. ESP32‑CAM devices stream faces to a Raspberry Pi that acts as the edge host for the web UI, storage, and device/network orchestration; all resource‑intensive training is automated in the cloud via GitHub Actions instead of running on the Pi. On the current dataset (67 users; 9,648 samples), the InsightFace + LogisticRegression pipeline achieves **99.94% train accuracy** and **99.74% validation accuracy** (top‑3: 99.90%). Experimental baselines trained on the same dataset show varying performance: the lightweight CNN yields 64.04% validation accuracy (top‑3: 82.80%) and the custom‑embedding model 98.86% validation accuracy. These experimental paths remain available for research, while the production‑grade path is InsightFace embeddings + Logistic Regression classifier delivering exceptional accuracy. The end‑to‑end pipeline covers acquisition, detection, alignment, embedding, and matching against a persistent database, with daily JSON attendance logs, and emphasizes modularity, reliability, and maintainability for scalable deployment.
