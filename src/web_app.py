@@ -5,18 +5,19 @@ Minimal code approach with basic functionality.
 import base64
 import os
 from datetime import datetime
+from io import BytesIO
 
 import cv2
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for, send_file, make_response
 from werkzeug.utils import secure_filename
 
 # Handle both relative and absolute imports
 try:
     from .attendance_system import AttendanceSystem
-    from .config import ALLOWED_EXTENSIONS, WEB_DEBUG, WEB_HOST, WEB_PORT
+    from .config import ALLOWED_EXTENSIONS, WEB_DEBUG, WEB_HOST, WEB_PORT, ATTENDANCE_DIR
 except ImportError:
     from attendance_system import AttendanceSystem
-    from config import ALLOWED_EXTENSIONS, WEB_DEBUG, WEB_HOST, WEB_PORT
+    from config import ALLOWED_EXTENSIONS, WEB_DEBUG, WEB_HOST, WEB_PORT, ATTENDANCE_DIR
 
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
@@ -394,6 +395,250 @@ def cnn_add_training_video():
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/export_attendance_pdf", methods=["GET"])
+def export_attendance_pdf():
+    """Export attendance records to PDF."""
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.enums import TA_CENTER
+        
+        # Get date range from query parameters
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
+        
+        # Get attendance records
+        if start_date and end_date:
+            attendance_records = get_attendance_by_date_range(start_date, end_date)
+            title = f"Attendance Report ({start_date} to {end_date})"
+        else:
+            attendance_records = attendance_system.get_today_attendance()
+            today = datetime.now().strftime("%Y-%m-%d")
+            title = f"Attendance Report ({today})"
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+        
+        # Styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#4F46E5'),
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'CustomSubtitle',
+            parent=styles['Normal'],
+            fontSize=12,
+            textColor=colors.HexColor('#6B7280'),
+            spaceAfter=20,
+            alignment=TA_CENTER
+        )
+        
+        # Add title
+        elements.append(Paragraph("Face Recognition Attendance System", title_style))
+        elements.append(Paragraph(title, subtitle_style))
+        elements.append(Spacer(1, 0.3*inch))
+        
+        # Prepare table data
+        if attendance_records:
+            data = [['#', 'Name', 'Date', 'Time', 'Confidence']]
+            for idx, record in enumerate(attendance_records, 1):
+                data.append([
+                    str(idx),
+                    record.get('user_name', 'Unknown'),
+                    record.get('date', 'N/A'),
+                    record.get('time', 'N/A'),
+                    f"{record.get('confidence', 0):.2f}"
+                ])
+            
+            # Create table
+            table = Table(data, colWidths=[0.5*inch, 2*inch, 1.5*inch, 1.5*inch, 1.2*inch])
+            
+            # Table styling
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4F46E5')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#111827')),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F3F4F6')]),
+                ('TOPPADDING', (0, 1), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+            ]))
+            
+            elements.append(table)
+            
+            # Add summary
+            elements.append(Spacer(1, 0.3*inch))
+            summary_style = ParagraphStyle(
+                'Summary',
+                parent=styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor('#374151'),
+                spaceAfter=5
+            )
+            elements.append(Paragraph(f"<b>Total Records:</b> {len(attendance_records)}", summary_style))
+            elements.append(Paragraph(f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", summary_style))
+        else:
+            elements.append(Paragraph("No attendance records found.", styles['Normal']))
+        
+        # Build PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        # Send file
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'attendance_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error generating PDF: {str(e)}"})
+
+
+@app.route("/export_attendance_excel", methods=["GET"])
+def export_attendance_excel():
+    """Export attendance records to Excel."""
+    try:
+        import pandas as pd
+        from openpyxl import load_workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        
+        # Get date range from query parameters
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
+        
+        # Get attendance records
+        if start_date and end_date:
+            attendance_records = get_attendance_by_date_range(start_date, end_date)
+        else:
+            attendance_records = attendance_system.get_today_attendance()
+        
+        # Create DataFrame
+        if attendance_records:
+            df = pd.DataFrame(attendance_records)
+            # Reorder columns
+            columns = ['user_name', 'date', 'time', 'confidence']
+            df = df[[col for col in columns if col in df.columns]]
+            # Rename columns for better readability
+            df.columns = ['Name', 'Date', 'Time', 'Confidence']
+        else:
+            df = pd.DataFrame(columns=['Name', 'Date', 'Time', 'Confidence'])
+        
+        # Create Excel file in memory
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Attendance', index=False)
+            
+            # Get workbook and worksheet
+            workbook = writer.book
+            worksheet = writer.sheets['Attendance']
+            
+            # Style header row
+            header_fill = PatternFill(start_color='4F46E5', end_color='4F46E5', fill_type='solid')
+            header_font = Font(bold=True, color='FFFFFF', size=12)
+            
+            for cell in worksheet[1]:
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Style data cells
+            border = Border(
+                left=Side(style='thin', color='E5E7EB'),
+                right=Side(style='thin', color='E5E7EB'),
+                top=Side(style='thin', color='E5E7EB'),
+                bottom=Side(style='thin', color='E5E7EB')
+            )
+            
+            for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
+                for cell in row:
+                    cell.border = border
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Adjust column widths
+            column_widths = {'A': 25, 'B': 15, 'C': 15, 'D': 15}
+            for col, width in column_widths.items():
+                worksheet.column_dimensions[col].width = width
+            
+            # Add summary information
+            summary_row = worksheet.max_row + 2
+            worksheet[f'A{summary_row}'] = 'Total Records:'
+            worksheet[f'B{summary_row}'] = len(attendance_records)
+            worksheet[f'A{summary_row + 1}'] = 'Generated:'
+            worksheet[f'B{summary_row + 1}'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Make summary bold
+            worksheet[f'A{summary_row}'].font = Font(bold=True)
+            worksheet[f'A{summary_row + 1}'].font = Font(bold=True)
+        
+        buffer.seek(0)
+        
+        # Send file
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'attendance_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        )
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error generating Excel: {str(e)}"})
+
+
+def get_attendance_by_date_range(start_date, end_date):
+    """Get attendance records for a date range."""
+    import json
+    from datetime import datetime, timedelta
+    
+    records = []
+    
+    try:
+        # Parse dates
+        start = datetime.strptime(start_date, '%Y-%m-%d')
+        end = datetime.strptime(end_date, '%Y-%m-%d')
+        
+        # Iterate through date range
+        current_date = start
+        while current_date <= end:
+            date_str = current_date.strftime('%Y-%m-%d')
+            attendance_file = os.path.join(ATTENDANCE_DIR, f"attendance_{date_str}.json")
+            
+            if os.path.exists(attendance_file):
+                try:
+                    with open(attendance_file) as f:
+                        daily_records = json.load(f)
+                        records.extend(daily_records)
+                except Exception as e:
+                    print(f"Error reading {attendance_file}: {e}")
+            
+            current_date += timedelta(days=1)
+        
+    except Exception as e:
+        print(f"Error getting attendance by date range: {e}")
+    
+    return records
 
 
 def run_app():
