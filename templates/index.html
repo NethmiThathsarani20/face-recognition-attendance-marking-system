@@ -15,7 +15,6 @@
         <nav>
             <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
             <a href="{{ url_for('add_user') }}"><i class="fas fa-user-plus"></i> Add User</a>
-            <a href="{{ url_for('cnn_training') }}"><i class="fas fa-brain"></i> CNN Training</a>
         </nav>
         
         <!-- Stats Cards -->
@@ -30,28 +29,13 @@
             </div>
         </div>
         
-        <!-- Model Selection -->
+        <!-- System Info -->
         <div class="info-section">
-            <h3><i class="fas fa-cog"></i> Recognition Model Configuration</h3>
-            <div class="model-toggle">
-                <strong>Active Model:</strong>
-                <label>
-                    <input type="radio" name="model_type" id="model_insightface" value="insightface" onchange="switchModel(this.value)">
-                    <i class="fas fa-robot"></i> InsightFace
-                </label>
-                <label>
-                    <input type="radio" name="model_type" id="model_cnn" value="cnn" onchange="switchModel(this.value)">
-                    <i class="fas fa-network-wired"></i> CNN (Custom)
-                </label>
-                <label>
-                    <input type="radio" name="model_type" id="model_embedding" value="embedding" onchange="switchModel(this.value)">
-                    <i class="fas fa-project-diagram"></i> Embedding (InsightFace + LR)
-                </label>
-                <label>
-                    <input type="radio" name="model_type" id="model_custom_embedding" value="custom_embedding" onchange="switchModel(this.value)">
-                    <i class="fas fa-cube"></i> Custom Embedding
-                </label>
-                <div id="model_status" style="margin-top:15px; padding:10px; background:rgba(255,255,255,0.2); border-radius:8px;"></div>
+            <h3><i class="fas fa-microchip"></i> System Information</h3>
+            <div style="padding: 15px; background: rgba(255,255,255,0.15); border-radius: 12px; backdrop-filter: blur(10px);">
+                <p style="margin: 10px 0;"><i class="fas fa-robot"></i> <strong>Recognition Model:</strong> Embedding Classifier (LogisticRegression + InsightFace)</p>
+                <p style="margin: 10px 0;"><i class="fas fa-tachometer-alt"></i> <strong>Optimized for:</strong> Raspberry Pi Performance</p>
+                <p style="margin: 10px 0;"><i class="fas fa-check-circle"></i> <strong>Status:</strong> Ready for Fast Recognition</p>
             </div>
         </div>
         
@@ -183,7 +167,6 @@
         let currentEndDate = '';
         
         document.addEventListener('DOMContentLoaded', () => {
-            loadModelStatus();
             setTodayDate();
         });
 
@@ -193,58 +176,6 @@
             document.getElementById('end_date').value = today;
         }
 
-        // Model toggle functions
-        function loadModelStatus() {
-            fetch('/model_status')
-                .then(r => r.json())
-                .then(data => {
-                    const current = (data.current_model || '').toLowerCase();
-                    const isCNN = current === 'cnn';
-                    const isEmbedding = current === 'embedding';
-                    const isCustom = current === 'customembedding' || current === 'custom_embedding';
-
-                    document.getElementById('model_cnn').checked = isCNN;
-                    document.getElementById('model_embedding').checked = isEmbedding;
-                    document.getElementById('model_custom_embedding').checked = isCustom;
-                    document.getElementById('model_insightface').checked = !(isCNN || isEmbedding || isCustom);
-
-                    const cnnAvailable = !!data.cnn_model_available;
-                    const embAvailable = !!data.embedding_model_available;
-                    const custAvailable = !!data.custom_embedding_model_available;
-                    document.getElementById('model_cnn').disabled = !cnnAvailable;
-                    document.getElementById('model_embedding').disabled = !embAvailable;
-                    document.getElementById('model_custom_embedding').disabled = !custAvailable;
-
-                    const status = document.getElementById('model_status');
-                    const availabilityCnn = cnnAvailable ? '✅ Available' : '❌ Not available';
-                    const availabilityEmb = embAvailable ? '✅ Available' : '❌ Not available';
-                    const availabilityCust = custAvailable ? '✅ Available' : '❌ Not available';
-                    status.innerHTML = `<strong>Current:</strong> ${data.current_model}<br>
-                        <strong>CNN:</strong> ${availabilityCnn} | 
-                        <strong>Embedding:</strong> ${availabilityEmb} | 
-                        <strong>Custom:</strong> ${availabilityCust}`;
-                })
-                .catch(() => {
-                    document.getElementById('model_insightface').checked = true;
-                    document.getElementById('model_status').textContent = 'Current: InsightFace';
-                });
-        }
-
-        function switchModel(modelType) {
-            const url = modelType === 'cnn' ? '/switch/cnn'
-                : (modelType === 'embedding' ? '/switch/embedding'
-                : (modelType === 'custom_embedding' ? '/switch/custom_embedding' : '/switch/insightface'));
-            
-            fetch(url, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                loadModelStatus();
-                const msg = data.message || (data.success ? `Switched to ${modelType}` : 'Failed to switch model');
-                displayResult({ success: !!data.success, message: msg });
-            })
-            .catch(err => displayResult({ success: false, message: `Error switching model: ${err}` }));
-        }
-        
         // Auto mode functions
         function toggleAutoMode() {
             const enabled = document.getElementById('auto_mode_enabled').checked;
