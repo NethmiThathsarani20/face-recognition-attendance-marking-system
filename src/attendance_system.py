@@ -17,9 +17,6 @@ import numpy as np
 
 # Handle both relative and absolute imports
 try:
-    from .cnn_trainer import CNNTrainer
-    from .embedding_trainer import EmbeddingTrainer
-    from .custom_embedding_trainer import CustomEmbeddingTrainer
     from .config import (
         ATTENDANCE_DATE_FORMAT,
         ATTENDANCE_DIR,
@@ -33,9 +30,6 @@ try:
     )
     from .face_manager import FaceManager
 except ImportError:
-    from cnn_trainer import CNNTrainer
-    from embedding_trainer import EmbeddingTrainer
-    from custom_embedding_trainer import CustomEmbeddingTrainer
     from config import (
         ATTENDANCE_DATE_FORMAT,
         ATTENDANCE_DIR,
@@ -48,6 +42,31 @@ except ImportError:
         USE_CNN_MODEL,
     )
     from face_manager import FaceManager
+
+# Trainers will be imported lazily
+CNNTrainer = None
+EmbeddingTrainer = None
+CustomEmbeddingTrainer = None
+
+
+def _import_trainers():
+    """Lazy import for trainers to avoid TensorFlow initialization."""
+    global CNNTrainer, EmbeddingTrainer, CustomEmbeddingTrainer
+    if CNNTrainer is None:
+        try:
+            from .cnn_trainer import CNNTrainer as CNN
+            from .embedding_trainer import EmbeddingTrainer as Embedding
+            from .custom_embedding_trainer import CustomEmbeddingTrainer as CustomEmbedding
+            CNNTrainer = CNN
+            EmbeddingTrainer = Embedding
+            CustomEmbeddingTrainer = CustomEmbedding
+        except ImportError:
+            from cnn_trainer import CNNTrainer as CNN
+            from embedding_trainer import EmbeddingTrainer as Embedding
+            from custom_embedding_trainer import CustomEmbeddingTrainer as CustomEmbedding
+            CNNTrainer = CNN
+            EmbeddingTrainer = Embedding
+            CustomEmbeddingTrainer = CustomEmbedding
 
 
 class AttendanceSystem:
@@ -63,9 +82,9 @@ class AttendanceSystem:
         self.use_custom_embedding_model: bool = False
 
         # Trainers (lazy init on switch)
-        self.cnn_trainer: Optional[CNNTrainer] = CNNTrainer() if self.use_cnn_model else None
-        self.embedding_trainer: Optional[EmbeddingTrainer] = None
-        self.custom_embedding_trainer: Optional[CustomEmbeddingTrainer] = None
+        self.cnn_trainer: Optional[object] = None
+        self.embedding_trainer: Optional[object] = None
+        self.custom_embedding_trainer: Optional[object] = None
 
         # Availability flags (set when models are loaded)
         self.embedding_model_available: bool = False
@@ -420,6 +439,7 @@ class AttendanceSystem:
         self.use_embedding_model = False
         # Lazy-initialize CNN trainer on first switch
         if self.cnn_trainer is None:
+            _import_trainers()
             self.cnn_trainer = CNNTrainer()
         print("🔄 Switched to CNN model for face recognition")
 
@@ -437,6 +457,7 @@ class AttendanceSystem:
         self.use_embedding_model = True
         # Ensure embedding model is loaded
         if self.embedding_trainer is None:
+            _import_trainers()
             self.embedding_trainer = EmbeddingTrainer()
         self.embedding_model_available = self.embedding_trainer.load_if_available()
         if self.embedding_model_available:
@@ -451,6 +472,7 @@ class AttendanceSystem:
         self.use_embedding_model = False
         self.use_custom_embedding_model = True
         if self.custom_embedding_trainer is None:
+            _import_trainers()
             self.custom_embedding_trainer = CustomEmbeddingTrainer()
         self.custom_embedding_model_available = self.custom_embedding_trainer.load_if_available()
         if self.custom_embedding_model_available:
@@ -536,9 +558,10 @@ class AttendanceSystem:
 
         return info
 
-    def get_cnn_trainer(self) -> CNNTrainer:
+    def get_cnn_trainer(self) -> "object":
         """Get the CNN trainer instance for training operations."""
         if self.cnn_trainer is None:
+            _import_trainers()
             self.cnn_trainer = CNNTrainer()
         return self.cnn_trainer
 

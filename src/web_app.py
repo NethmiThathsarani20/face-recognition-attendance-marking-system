@@ -27,16 +27,14 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
-# Initialize attendance system and set to use embedding model (LogisticRegression + InsightFace)
+# Initialize attendance system
 attendance_system = AttendanceSystem()
-# Use embedding model (LogisticRegression + InsightFace) for best performance on Raspberry Pi
-attendance_system.switch_to_embedding_model()
+# Note: Model selection will happen on first use (lazy loading)
 
 
 def allowed_file(filename):
     """Check if file extension is allowed."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @app.route("/")
 def index():
