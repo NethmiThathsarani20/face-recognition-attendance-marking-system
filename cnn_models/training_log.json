@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-26T13:21:47.062555",
+  "timestamp": "2025-12-26T16:26:30.229082",
   "num_classes": 67,
   "num_samples": 9648,
   "epochs": 30,
-  "training_time_seconds": 1993.144795,
+  "training_time_seconds": 2012.016567,
   "final_train_loss": 1.0990321636199951,
   "final_val_loss": 1.2935975790023804,
   "final_train_accuracy": 0.6856698393821716,
