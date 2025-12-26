@@ -7,3 +7,7 @@ __pycache__/
 *.pyd
 *.vscode
 .DS_Store
+
+# Ignore alternate database directories (use only 'database/')
+database1/
+database2/
