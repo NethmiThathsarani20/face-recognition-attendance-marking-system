@@ -3,81 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance System</title>
+    <title>Face Recognition Attendance System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>Simple Attendance System</h1>
+        <h1>🎯 Face Recognition Attendance System</h1>
         
         <!-- Navigation -->
         <nav>
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('add_user') }}">Add User</a>
-            <a href="{{ url_for('cnn_training') }}">CNN Training</a>
+            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
+            <a href="{{ url_for('add_user') }}"><i class="fas fa-user-plus"></i> Add User</a>
+            <a href="{{ url_for('cnn_training') }}"><i class="fas fa-brain"></i> CNN Training</a>
         </nav>
         
-        <!-- User Info -->
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-users"></i> {{ users|length }}</h3>
+                <p>Registered Users</p>
+            </div>
+            <div class="stat-card" style="border-top-color: var(--secondary-color);">
+                <h3 style="color: var(--secondary-color);"><i class="fas fa-check-circle"></i> {{ attendance|length }}</h3>
+                <p>Today's Attendance</p>
+            </div>
+        </div>
+        
+        <!-- Model Selection -->
         <div class="info-section">
-            <h3>Registered Users: {{ users|length }}</h3>
-            <p>Today's Attendance: {{ attendance|length }}</p>
-            <div class="model-toggle" style="margin-top:10px;">
-                <strong>Recognition Model:</strong>
-                <label style="margin-left:10px;">
+            <h3><i class="fas fa-cog"></i> Recognition Model Configuration</h3>
+            <div class="model-toggle">
+                <strong>Active Model:</strong>
+                <label>
                     <input type="radio" name="model_type" id="model_insightface" value="insightface" onchange="switchModel(this.value)">
-                    InsightFace
+                    <i class="fas fa-robot"></i> InsightFace
                 </label>
-                <label style="margin-left:10px;">
+                <label>
                     <input type="radio" name="model_type" id="model_cnn" value="cnn" onchange="switchModel(this.value)">
-                    CNN (custom)
+                    <i class="fas fa-network-wired"></i> CNN (Custom)
                 </label>
-                <label style="margin-left:10px;">
+                <label>
                     <input type="radio" name="model_type" id="model_embedding" value="embedding" onchange="switchModel(this.value)">
-                    Embedding (InsightFace + LR)
+                    <i class="fas fa-project-diagram"></i> Embedding (InsightFace + LR)
                 </label>
-                <label style="margin-left:10px;">
+                <label>
                     <input type="radio" name="model_type" id="model_custom_embedding" value="custom_embedding" onchange="switchModel(this.value)">
-                    Custom Embedding (independent)
+                    <i class="fas fa-cube"></i> Custom Embedding
                 </label>
-                <span id="model_status" style="margin-left:10px; font-size:12px; color:#666;"></span>
+                <div id="model_status" style="margin-top:15px; padding:10px; background:rgba(255,255,255,0.2); border-radius:8px;"></div>
             </div>
         </div>
         
         <!-- Attendance Marking -->
         <div class="attendance-section">
-            <h2>Mark Attendance</h2>
+            <h2><i class="fas fa-camera"></i> Mark Attendance</h2>
             
             <!-- Camera Option -->
             <div class="input-method">
-                <h3>Camera Capture</h3>
-                <div style="margin-bottom: 10px;">
+                <h3><i class="fas fa-video"></i> Camera Capture</h3>
+                <div style="margin-bottom: 15px;">
                     <label>
                         <input type="radio" name="camera_type" value="local" checked onchange="toggleCameraInput()">
-                        Local Camera (Index):
+                        <i class="fas fa-desktop"></i> Local Camera (Index):
                     </label>
                     <input type="number" id="camera_index" value="0" min="0" max="10" style="margin-left: 10px;">
                 </div>
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 15px;">
                     <label>
                         <input type="radio" name="camera_type" value="ip" onchange="toggleCameraInput()">
-                        IP Camera (URL):
+                        <i class="fas fa-wifi"></i> IP Camera (URL):
                     </label>
                     <input type="text" id="camera_url" placeholder="e.g., http://user:pass@192.168.1.100:8080/video" 
-                           style="margin-left: 10px; width: 400px;" disabled>
+                           style="margin-left: 10px; width: 100%; max-width: 500px;" disabled>
                 </div>
-                <div style="margin-bottom: 10px; font-size: 12px; color: #666;">
-                    <strong>Common IP Camera URLs:</strong><br>
+                <div style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.7); border-radius: 8px; font-size: 13px; color: #374151;">
+                    <strong><i class="fas fa-info-circle"></i> Common IP Camera URLs:</strong><br>
                     • Android IP Webcam: http://192.168.1.100:8080/video<br>
                     • ESP32-CAM: http://192.168.1.100:81/stream<br>
                     • With authentication: http://username:password@192.168.1.100:8080/video<br>
                     • RTSP: rtsp://192.168.1.100:554/stream
                 </div>
-                <button onclick="testCamera()">Test Camera</button>
-                <button onclick="markAttendanceCamera()">Mark Attendance (Camera)</button>
+                <button onclick="testCamera()"><i class="fas fa-vial"></i> Test Camera</button>
+                <button onclick="markAttendanceCamera()" class="btn-success"><i class="fas fa-camera"></i> Mark Attendance</button>
+                
                 <div class="auto-mode-controls">
                     <label>
                         <input type="checkbox" id="auto_mode_enabled" onchange="toggleAutoMode()">
-                        Enable Automatic Recognition Mode
+                        <i class="fas fa-sync-alt"></i> Enable Automatic Recognition Mode
                     </label>
                     <div id="auto_mode_status" style="display: none;">
                         Auto Recognition: <span id="auto_status">Inactive</span>
@@ -88,36 +101,58 @@
             
             <!-- Upload Option -->
             <div class="input-method">
-                <h3>Image Upload</h3>
+                <h3><i class="fas fa-upload"></i> Image Upload</h3>
                 <input type="file" id="image_upload" accept="image/*">
-                <button onclick="markAttendanceUpload()">Mark Attendance (Upload)</button>
+                <button onclick="markAttendanceUpload()" class="btn-success"><i class="fas fa-check-circle"></i> Mark Attendance</button>
                 <div id="upload_result"></div>
             </div>
         </div>
         
         <!-- Results Display -->
         <div id="result_display" class="result-section" style="display: none;">
-            <h3>Attendance Result</h3>
+            <h3><i class="fas fa-clipboard-check"></i> Attendance Result</h3>
             <div id="result_content"></div>
         </div>
         
         <!-- Today's Attendance -->
         <div class="attendance-list">
-            <h2>Today's Attendance</h2>
+            <h2><i class="fas fa-list-alt"></i> Today's Attendance Records</h2>
+            
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <h3><i class="fas fa-filter"></i> Filter by Date Range</h3>
+                <div class="filter-controls">
+                    <div class="form-group">
+                        <label for="start_date">Start Date:</label>
+                        <input type="date" id="start_date" value="{{ today }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="end_date">End Date:</label>
+                        <input type="date" id="end_date" value="{{ today }}">
+                    </div>
+                    <button onclick="filterAttendance()" class="btn-secondary"><i class="fas fa-search"></i> Filter</button>
+                    <button onclick="resetFilter()" class="btn-outline"><i class="fas fa-redo"></i> Reset</button>
+                </div>
+            </div>
+            
             <div id="attendance_table">
                 {% if attendance %}
                     <table>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Time</th>
-                                <th>Confidence</th>
+                                <th><i class="fas fa-hashtag"></i> #</th>
+                                <th><i class="fas fa-user"></i> Name</th>
+                                <th><i class="fas fa-calendar"></i> Date</th>
+                                <th><i class="fas fa-clock"></i> Time</th>
+                                <th><i class="fas fa-percent"></i> Confidence</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for record in attendance %}
                             <tr>
+                                <td>{{ loop.index }}</td>
                                 <td>{{ record.user_name }}</td>
+                                <td>{{ record.date }}</td>
                                 <td>{{ record.time }}</td>
                                 <td>{{ "%.2f"|format(record.confidence) }}</td>
                             </tr>
@@ -125,19 +160,38 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <p>No attendance records for today.</p>
+                    <p style="text-align:center; padding: 40px; color: var(--text-secondary);">
+                        <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                        No attendance records for today.
+                    </p>
                 {% endif %}
             </div>
-            <button onclick="refreshAttendance()">Refresh</button>
+            
+            <!-- Action Buttons -->
+            <div class="export-buttons">
+                <button onclick="refreshAttendance()" class="btn-secondary"><i class="fas fa-sync"></i> Refresh</button>
+                <button onclick="exportToPDF()" class="btn-danger"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                <button onclick="exportToExcel()" class="btn-success"><i class="fas fa-file-excel"></i> Export as Excel</button>
+            </div>
         </div>
     </div>
     
     <script>
         let autoModeInterval = null;
-        const AUTO_MODE_INTERVAL = 3000; // 5 seconds between captures
+        const AUTO_MODE_INTERVAL = 3000;
+        let currentStartDate = '';
+        let currentEndDate = '';
+        
         document.addEventListener('DOMContentLoaded', () => {
             loadModelStatus();
+            setTodayDate();
         });
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start_date').value = today;
+            document.getElementById('end_date').value = today;
+        }
 
         // Model toggle functions
         function loadModelStatus() {
@@ -149,13 +203,11 @@
                     const isEmbedding = current === 'embedding';
                     const isCustom = current === 'customembedding' || current === 'custom_embedding';
 
-                    // Set radio states
                     document.getElementById('model_cnn').checked = isCNN;
                     document.getElementById('model_embedding').checked = isEmbedding;
                     document.getElementById('model_custom_embedding').checked = isCustom;
                     document.getElementById('model_insightface').checked = !(isCNN || isEmbedding || isCustom);
 
-                    // Availability toggles
                     const cnnAvailable = !!data.cnn_model_available;
                     const embAvailable = !!data.embedding_model_available;
                     const custAvailable = !!data.custom_embedding_model_available;
@@ -163,28 +215,26 @@
                     document.getElementById('model_embedding').disabled = !embAvailable;
                     document.getElementById('model_custom_embedding').disabled = !custAvailable;
 
-                    // Status line
                     const status = document.getElementById('model_status');
-                    const availabilityCnn = cnnAvailable ? 'available' : 'not available';
-                    const availabilityEmb = embAvailable ? 'available' : 'not available';
-                    const availabilityCust = custAvailable ? 'available' : 'not available';
-                    status.textContent = `Current: ${data.current_model} • CNN is ${availabilityCnn} • Embedding is ${availabilityEmb} • Custom is ${availabilityCust}`;
+                    const availabilityCnn = cnnAvailable ? '✅ Available' : '❌ Not available';
+                    const availabilityEmb = embAvailable ? '✅ Available' : '❌ Not available';
+                    const availabilityCust = custAvailable ? '✅ Available' : '❌ Not available';
+                    status.innerHTML = `<strong>Current:</strong> ${data.current_model}<br>
+                        <strong>CNN:</strong> ${availabilityCnn} | 
+                        <strong>Embedding:</strong> ${availabilityEmb} | 
+                        <strong>Custom:</strong> ${availabilityCust}`;
                 })
                 .catch(() => {
-                    // If status endpoint fails, default to InsightFace
                     document.getElementById('model_insightface').checked = true;
                     document.getElementById('model_status').textContent = 'Current: InsightFace';
                 });
         }
 
         function switchModel(modelType) {
-            const url = modelType === 'cnn'
-                ? '/switch/cnn'
-                : (modelType === 'embedding'
-                    ? '/switch/embedding'
-                    : (modelType === 'custom_embedding'
-                        ? '/switch/custom_embedding'
-                        : '/switch/insightface'));
+            const url = modelType === 'cnn' ? '/switch/cnn'
+                : (modelType === 'embedding' ? '/switch/embedding'
+                : (modelType === 'custom_embedding' ? '/switch/custom_embedding' : '/switch/insightface'));
+            
             fetch(url, { method: 'POST' })
             .then(r => r.json())
             .then(data => {
@@ -203,8 +253,9 @@
             
             if (enabled) {
                 statusDiv.style.display = 'block';
-                statusSpan.textContent = 'Active';
-                statusSpan.style.color = '#4CAF50';
+                statusSpan.textContent = 'Active ✅';
+                statusSpan.style.color = '#10B981';
+                statusSpan.style.fontWeight = 'bold';
                 startAutoMode();
             } else {
                 statusDiv.style.display = 'none';
@@ -214,14 +265,8 @@
         }
         
         function startAutoMode() {
-            if (autoModeInterval) {
-                clearInterval(autoModeInterval);
-            }
-            
-            // Initial capture
+            if (autoModeInterval) clearInterval(autoModeInterval);
             performAutoCapture();
-            
-            // Set up periodic capture
             autoModeInterval = setInterval(performAutoCapture, AUTO_MODE_INTERVAL);
         }
         
@@ -244,23 +289,13 @@
             
             fetch('/mark_attendance_camera', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    camera_source: cameraSource,
-                    auto_mode: true
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ camera_source: cameraSource, auto_mode: true })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    refreshAttendance();
-                }
-                // Only show errors in auto mode, success messages are too noisy
-                if (!data.success) {
-                    displayResult(data);
-                }
+                if (data.success) refreshAttendance();
+                if (!data.success) displayResult(data);
             })
             .catch(error => {
                 displayResult({ success: false, message: `Error: ${error}` });
@@ -269,7 +304,6 @@
             });
         }
 
-        // Toggle camera input based on selection
         function toggleCameraInput() {
             const cameraType = document.querySelector('input[name="camera_type"]:checked').value;
             const cameraIndex = document.getElementById('camera_index');
@@ -284,17 +318,13 @@
             }
         }
         
-        // Get camera source based on selection
         function getCameraSource() {
             const cameraType = document.querySelector('input[name="camera_type"]:checked').value;
-            if (cameraType === 'local') {
-                return document.getElementById('camera_index').value;
-            } else {
-                return document.getElementById('camera_url').value;
-            }
+            return cameraType === 'local' 
+                ? document.getElementById('camera_index').value 
+                : document.getElementById('camera_url').value;
         }
         
-        // Test camera functionality
         function testCamera() {
             const cameraSource = getCameraSource();
             
@@ -309,19 +339,21 @@
                     const resultDiv = document.getElementById('camera_result');
                     if (data.success) {
                         resultDiv.innerHTML = `
-                            <p>Camera working!</p>
-                            <img src="data:image/jpeg;base64,${data.image}" style="max-width: 300px;">
+                            <div class="success">
+                                <p><i class="fas fa-check-circle"></i> Camera working!</p>
+                                <img src="data:image/jpeg;base64,${data.image}" style="max-width: 400px;">
+                            </div>
                         `;
                     } else {
-                        resultDiv.innerHTML = `<p style="color: red;">Camera not available</p>`;
+                        resultDiv.innerHTML = `<div class="error"><p><i class="fas fa-times-circle"></i> ${data.message}</p></div>`;
                     }
                 })
                 .catch(error => {
-                    document.getElementById('camera_result').innerHTML = `<p style="color: red;">Error: ${error}</p>`;
+                    document.getElementById('camera_result').innerHTML = 
+                        `<div class="error"><p><i class="fas fa-exclamation-triangle"></i> Error: ${error}</p></div>`;
                 });
         }
         
-        // Mark attendance using camera
         function markAttendanceCamera() {
             const cameraSource = getCameraSource();
             
@@ -332,21 +364,14 @@
             
             fetch('/mark_attendance_camera', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ camera_source: cameraSource })
             })
             .then(response => response.json())
-            .then(data => {
-                displayResult(data);
-            })
-            .catch(error => {
-                displayResult({ success: false, message: `Error: ${error}` });
-            });
+            .then(data => displayResult(data))
+            .catch(error => displayResult({ success: false, message: `Error: ${error}` }));
         }
         
-        // Mark attendance using upload
         function markAttendanceUpload() {
             const fileInput = document.getElementById('image_upload');
             const file = fileInput.files[0];
@@ -364,76 +389,130 @@
                 body: formData
             })
             .then(response => response.json())
-            .then(data => {
-                displayResult(data);
-            })
-            .catch(error => {
-                displayResult({ success: false, message: `Error: ${error}` });
-            });
+            .then(data => displayResult(data))
+            .catch(error => displayResult({ success: false, message: `Error: ${error}` }));
         }
         
-        // Display result
         function displayResult(data) {
             const resultDiv = document.getElementById('result_display');
             const contentDiv = document.getElementById('result_content');
             
             if (data.success) {
                 contentDiv.innerHTML = `
-                    <div class="success">
-                        <h4>✅ ${data.message}</h4>
+                    <div class="success fade-in">
+                        <h4><i class="fas fa-check-circle"></i> ${data.message}</h4>
                         <p><strong>User:</strong> ${data.user_name}</p>
                         <p><strong>Confidence:</strong> ${data.confidence.toFixed(2)}</p>
                         <p><strong>Time:</strong> ${data.attendance_record.time}</p>
-                        ${data.captured_image ? `<img src="data:image/jpeg;base64,${data.captured_image}" style="max-width: 200px;">` : ''}
+                        ${data.captured_image ? `<img src="data:image/jpeg;base64,${data.captured_image}" style="max-width: 300px;">` : ''}
                     </div>
                 `;
                 refreshAttendance();
             } else {
                 contentDiv.innerHTML = `
-                    <div class="error">
-                        <h4>❌ ${data.message}</h4>
+                    <div class="error fade-in">
+                        <h4><i class="fas fa-exclamation-triangle"></i> ${data.message}</h4>
                     </div>
                 `;
             }
             
             resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
-        // Refresh attendance table
         function refreshAttendance() {
             fetch('/get_attendance')
                 .then(response => response.json())
-                .then(data => {
-                    const tableDiv = document.getElementById('attendance_table');
-                    if (data.length > 0) {
-                        let tableHTML = `
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Time</th>
-                                        <th>Confidence</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        
-                        data.forEach(record => {
-                            tableHTML += `
-                                <tr>
-                                    <td>${record.user_name}</td>
-                                    <td>${record.time}</td>
-                                    <td>${record.confidence.toFixed(2)}</td>
-                                </tr>
-                            `;
-                        });
-                        
-                        tableHTML += '</tbody></table>';
-                        tableDiv.innerHTML = tableHTML;
-                    } else {
-                        tableDiv.innerHTML = '<p>No attendance records for today.</p>';
-                    }
+                .then(data => updateAttendanceTable(data))
+                .catch(error => console.error('Error refreshing attendance:', error));
+        }
+        
+        function updateAttendanceTable(data) {
+            const tableDiv = document.getElementById('attendance_table');
+            if (data.length > 0) {
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag"></i> #</th>
+                                <th><i class="fas fa-user"></i> Name</th>
+                                <th><i class="fas fa-calendar"></i> Date</th>
+                                <th><i class="fas fa-clock"></i> Time</th>
+                                <th><i class="fas fa-percent"></i> Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach((record, index) => {
+                    tableHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${record.user_name}</td>
+                            <td>${record.date}</td>
+                            <td>${record.time}</td>
+                            <td>${record.confidence.toFixed(2)}</td>
+                        </tr>
+                    `;
                 });
+                
+                tableHTML += '</tbody></table>';
+                tableDiv.innerHTML = tableHTML;
+            } else {
+                tableDiv.innerHTML = `
+                    <p style="text-align:center; padding: 40px; color: var(--text-secondary);">
+                        <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                        No attendance records found.
+                    </p>
+                `;
+            }
+        }
+        
+        function filterAttendance() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            currentStartDate = startDate;
+            currentEndDate = endDate;
+            
+            // For now, just refresh - the backend would need to support date range queries
+            refreshAttendance();
+        }
+        
+        function resetFilter() {
+            setTodayDate();
+            currentStartDate = '';
+            currentEndDate = '';
+            refreshAttendance();
+        }
+        
+        function exportToPDF() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            
+            let url = '/export_attendance_pdf';
+            if (startDate && endDate) {
+                url += `?start_date=${startDate}&end_date=${endDate}`;
+            }
+            
+            window.location.href = url;
+        }
+        
+        function exportToExcel() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            
+            let url = '/export_attendance_excel';
+            if (startDate && endDate) {
+                url += `?start_date=${startDate}&end_date=${endDate}`;
+            }
+            
+            window.location.href = url;
         }
     </script>
 </body>

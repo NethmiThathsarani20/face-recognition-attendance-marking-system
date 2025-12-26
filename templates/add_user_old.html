@@ -3,44 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add User - Face Recognition Attendance System</title>
+    <title>Add User - Attendance System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>👤 Add New User</h1>
+        <h1>Add New User</h1>
         
         <!-- Navigation -->
         <nav>
-            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
-            <a href="{{ url_for('add_user') }}"><i class="fas fa-user-plus"></i> Add User</a>
-            <a href="{{ url_for('cnn_training') }}"><i class="fas fa-brain"></i> CNN Training</a>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('add_user') }}">Add User</a>
+            <a href="{{ url_for('cnn_training') }}">CNN Training</a>
         </nav>
         
         <!-- Add User Form -->
         <div class="form-section">
-            <h2><i class="fas fa-user-circle"></i> User Registration</h2>
             <form id="add_user_form" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="user_name"><i class="fas fa-signature"></i> User Name:</label>
-                    <input type="text" id="user_name" name="user_name" placeholder="Enter full name" required>
-                    <small>Enter a unique name for the user</small>
+                    <label for="user_name">User Name:</label>
+                    <input type="text" id="user_name" name="user_name" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="user_images"><i class="fas fa-images"></i> Select Images (multiple):</label>
+                    <label for="user_images">Select Images (multiple):</label>
                     <input type="file" id="user_images" name="user_images" accept="image/*" multiple required>
-                    <small>Select 3-5 clear images of the person for better recognition accuracy</small>
+                    <small>Select multiple images of the same person for better recognition</small>
                 </div>
                 
-                <button type="submit" class="btn-success"><i class="fas fa-user-plus"></i> Add User</button>
+                <button type="submit">Add User</button>
             </form>
         </div>
         
         <!-- Image Preview -->
         <div id="image_preview" class="preview-section" style="display: none;">
-            <h3><i class="fas fa-eye"></i> Selected Images Preview</h3>
+            <h3>Selected Images:</h3>
             <div id="preview_container"></div>
         </div>
         
@@ -51,14 +48,13 @@
         
         <!-- Instructions -->
         <div class="instructions">
-            <h3><i class="fas fa-lightbulb"></i> Instructions & Tips</h3>
+            <h3>Instructions:</h3>
             <ul>
-                <li><i class="fas fa-check"></i> <strong>Unique Name:</strong> Enter a unique user name that hasn't been registered before</li>
-                <li><i class="fas fa-check"></i> <strong>Multiple Images:</strong> Select 3-5 clear images of the same person from different angles</li>
-                <li><i class="fas fa-check"></i> <strong>Good Lighting:</strong> Ensure images have good lighting and clear face visibility</li>
-                <li><i class="fas fa-check"></i> <strong>Face Detection:</strong> The system will automatically detect, align, and process faces</li>
-                <li><i class="fas fa-check"></i> <strong>Image Quality:</strong> Use high-resolution images for better recognition accuracy</li>
-                <li><i class="fas fa-check"></i> <strong>Variety:</strong> Include images with different expressions and slight angle variations</li>
+                <li>Enter a unique user name</li>
+                <li>Select multiple clear images of the person</li>
+                <li>Images should have good lighting and clear face visibility</li>
+                <li>System will automatically align and process faces</li>
+                <li>Use 3-5 images for better recognition accuracy</li>
             </ul>
         </div>
     </div>
@@ -78,25 +74,20 @@
                     const reader = new FileReader();
                     
                     reader.onload = function(e) {
-                        const imgWrapper = document.createElement('div');
-                        imgWrapper.style.position = 'relative';
-                        
                         const img = document.createElement('img');
                         img.src = e.target.result;
                         img.style.width = '150px';
                         img.style.height = '150px';
                         img.style.objectFit = 'cover';
-                        img.classList.add('fade-in');
-                        
-                        imgWrapper.appendChild(img);
-                        previewContainer.appendChild(imgWrapper);
+                        img.style.margin = '5px';
+                        img.style.border = '1px solid #ccc';
+                        previewContainer.appendChild(img);
                     };
                     
                     reader.readAsDataURL(file);
                 }
                 
                 previewSection.style.display = 'block';
-                previewSection.classList.add('fade-in');
             } else {
                 previewSection.style.display = 'none';
             }
@@ -115,18 +106,7 @@
                 return;
             }
             
-            if (images.length < 3) {
-                displayResult({ success: false, message: 'Please select at least 3 images for better accuracy' });
-                return;
-            }
-            
-            // Show processing message
-            displayResult({ success: true, message: 'Processing images... Please wait.' });
-            
-            // Disable submit button
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            displayResult({ success: true, message: 'Processing images...' });
             
             fetch('/add_user', {
                 method: 'POST',
@@ -142,14 +122,10 @@
             .then(data => {
                 if (data) {
                     displayResult(data);
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Add User';
                 }
             })
             .catch(error => {
                 displayResult({ success: false, message: `Error: ${error}` });
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Add User';
             });
         });
         
@@ -160,28 +136,25 @@
             
             if (data.success) {
                 contentDiv.innerHTML = `
-                    <div class="success fade-in">
-                        <h4><i class="fas fa-check-circle"></i> ${data.message}</h4>
+                    <div class="success">
+                        <h4>✅ ${data.message}</h4>
                     </div>
                 `;
                 
                 // Clear form if successful and not processing
-                if (data.message !== 'Processing images... Please wait.') {
-                    setTimeout(() => {
-                        document.getElementById('add_user_form').reset();
-                        document.getElementById('image_preview').style.display = 'none';
-                    }, 2000);
+                if (data.message !== 'Processing images...') {
+                    document.getElementById('add_user_form').reset();
+                    document.getElementById('image_preview').style.display = 'none';
                 }
             } else {
                 contentDiv.innerHTML = `
-                    <div class="error fade-in">
-                        <h4><i class="fas fa-exclamation-triangle"></i> ${data.message}</h4>
+                    <div class="error">
+                        <h4>❌ ${data.message}</h4>
                     </div>
                 `;
             }
             
             resultDiv.style.display = 'block';
-            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     </script>
 </body>
