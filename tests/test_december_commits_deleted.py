@@ -23,7 +23,7 @@ def get_december_commits() -> List[str]:
                 "git", "log", "--all",
                 "--pretty=format:%H",
                 "--since=2025-12-01",
-                "--until=2025-12-31"
+                "--before=2026-01-01"
             ],
             capture_output=True,
             text=True,

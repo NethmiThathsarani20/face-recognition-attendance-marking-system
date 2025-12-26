@@ -36,7 +36,7 @@ def get_december_2025_commits() -> List[Dict[str, str]]:
         "--all",
         "--pretty=format:%H|%ai|%an|%s",
         "--since=2025-12-01",
-        "--until=2025-12-31"
+        "--before=2026-01-01"
     ])
     
     if not output:
