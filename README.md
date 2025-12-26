@@ -505,8 +505,9 @@ pip install -r requirements.txt
    - HTTP utilities for Flask
 
 8. **tensorflow>=2.10.0** - Deep learning framework
-   - Optional CNN and custom embedding training
-   - Not required for production (InsightFace only)
+   - Used for optional CNN and custom embedding training
+   - **Note**: Not required for production deployment (InsightFace-only mode)
+   - Can be excluded if only using InsightFace for recognition
 
 9. **scikit-learn>=1.0.0** - Machine learning library
    - Embedding classifier (Logistic Regression)
@@ -565,7 +566,12 @@ matplotlib         # Visualization
 
 2. **Upload Firmware**
    - Open Arduino IDE
-   - Install ESP32 board support: `https://dl.espressif.com/dl/package_esp32_index.json`
+   - Install ESP32 board support:
+     - Go to File → Preferences
+     - Add this URL to "Additional Board Manager URLs":
+       `https://dl.espressif.com/dl/package_esp32_index.json`
+     - Go to Tools → Board → Boards Manager
+     - Search "esp32" and install
    - Navigate to `esp32-camera/` directory
    - Open `esp32-camera.ino`
    - Update WiFi credentials in code:
@@ -609,6 +615,8 @@ matplotlib         # Visualization
    # From your computer
    ssh pi@10.74.63.231
    # Default password: raspberry
+   # ⚠️ CRITICAL: Change this password immediately after first login!
+   # Run: passwd
    
    # Navigate to project
    cd face-recognition-attendance-marking-system
@@ -932,18 +940,20 @@ python ip.py <MAC_ADDRESS>
 
 ### Network Examples
 ```bash
-# SSH to Raspberry Pi
+# SSH to Raspberry Pi (replace IP with your device's IP)
 ssh pi@10.74.63.231
 
-# ESP32-CAM stream URL
+# ESP32-CAM stream URL (example IP, yours will be different)
 http://10.74.63.131:81/stream
 
-# Raspberry Pi web app
+# Raspberry Pi web app (example IP, yours will be different)
 http://10.74.63.231:3000
 
-# Test camera connection
+# Test camera connection (replace with your camera IP)
 curl http://10.74.63.131:81/stream
 ```
+
+**Note**: Replace example IP addresses (10.74.63.x) with your actual device IP addresses.
 
 ### File Locations
 ```

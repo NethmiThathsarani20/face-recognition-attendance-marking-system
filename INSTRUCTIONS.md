@@ -211,7 +211,10 @@ Press `Ctrl+C` in the terminal to stop the server.
 2. **SSH into Raspberry Pi**
    ```bash
    ssh pi@<raspberry-pi-ip>
-   # Default password: raspberry (change after first login)
+   # Example: ssh pi@10.74.63.231
+   # Default password: raspberry
+   # ⚠️ CRITICAL SECURITY STEP: Change password immediately after first login!
+   # Run: passwd
    ```
 
 3. **Update System**
