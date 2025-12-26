@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNN Training - Face Recognition Attendance System</title>
+    <title>CNN Training - Attendance System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .training-section {
             background: #f9f9f9;
@@ -79,13 +78,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>🧠 CNN Training System</h1>
+        <h1>CNN Training System</h1>
         
         <!-- Navigation -->
         <nav>
-            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
-            <a href="{{ url_for('add_user') }}"><i class="fas fa-user-plus"></i> Add User</a>
-            <a href="{{ url_for('cnn_training') }}"><i class="fas fa-brain"></i> CNN Training</a>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('add_user') }}">Add User</a>
+            <a href="{{ url_for('cnn_training') }}" class="active">CNN Training</a>
         </nav>
         
         <!-- Current Status -->
