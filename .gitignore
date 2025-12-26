@@ -1,12 +1,44 @@
+# Virtual environments
 .venv/
 .conda/
+venv/
+env/
+
+# Python cache
 __pycache__/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.pyc
 *.pyo
 *.pyd
-*.vscode
+
+# IDE - keep VS Code config but ignore user-specific settings
+.vscode/settings.json.user
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Logs
+*.log
 
 # Ignore alternate database directories (use only 'database/')
 database1/
