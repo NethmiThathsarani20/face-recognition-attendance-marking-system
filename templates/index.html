@@ -4,8 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Recognition Attendance System</title>
+    
+    <!-- Preconnect to CDN for faster resource loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Inline critical CSS for faster rendering -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #6366f1;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
+        h1 { 
+            text-align: center; 
+            color: white; 
+            margin-bottom: 40px; 
+            font-size: 3rem; 
+            font-weight: 700;
+        }
+    </style>
+    
+    <!-- Load main stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Load Font Awesome asynchronously -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
 <body>
     <div class="container">
@@ -20,12 +48,24 @@
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <h3><i class="fas fa-users"></i> {{ users|length }}</h3>
+                <h3><i class="fas fa-users"></i> <span id="users_count">...</span></h3>
                 <p>Registered Users</p>
             </div>
             <div class="stat-card" style="border-top-color: var(--secondary-color);">
-                <h3 style="color: var(--secondary-color);"><i class="fas fa-check-circle"></i> {{ attendance|length }}</h3>
+                <h3 style="color: var(--secondary-color);"><i class="fas fa-check-circle"></i> <span id="attendance_count">...</span></h3>
                 <p>Today's Attendance</p>
+            </div>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div id="loading_indicator" class="loading-section" style="display: block;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <h3>🔄 Initializing Face Recognition System...</h3>
+                <p>Loading models and data. This may take 10-15 seconds on first load.</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress_fill"></div>
+                </div>
             </div>
         </div>
         
@@ -165,10 +205,68 @@
         const AUTO_MODE_INTERVAL = 3000;
         let currentStartDate = '';
         let currentEndDate = '';
+        let systemInitialized = false;
         
         document.addEventListener('DOMContentLoaded', () => {
             setTodayDate();
+            initializeSystem();
         });
+
+        function initializeSystem() {
+            // Start progress animation
+            let progress = 0;
+            const progressFill = document.getElementById('progress_fill');
+            const progressInterval = setInterval(() => {
+                progress += 2;
+                if (progress <= 90) {
+                    progressFill.style.width = progress + '%';
+                }
+            }, 300);
+            
+            // Initialize system in background
+            fetch('/initialize_system', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+                
+                if (data.success) {
+                    // Update stats
+                    document.getElementById('users_count').textContent = data.users_count;
+                    document.getElementById('attendance_count').textContent = data.attendance_count;
+                    
+                    // Update attendance table
+                    updateAttendanceTable(data.attendance);
+                    
+                    // Hide loading indicator
+                    setTimeout(() => {
+                        document.getElementById('loading_indicator').style.display = 'none';
+                        systemInitialized = true;
+                    }, 500);
+                } else {
+                    document.getElementById('loading_indicator').innerHTML = `
+                        <div class="error">
+                            <h4>⚠️ Initialization Failed</h4>
+                            <p>${data.error || 'Unknown error'}</p>
+                            <button onclick="location.reload()">Retry</button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                document.getElementById('loading_indicator').innerHTML = `
+                    <div class="error">
+                        <h4>⚠️ Initialization Failed</h4>
+                        <p>Error: ${error}</p>
+                        <button onclick="location.reload()">Retry</button>
+                    </div>
+                `;
+            });
+        }
 
         function setTodayDate() {
             const today = new Date().toISOString().split('T')[0];
