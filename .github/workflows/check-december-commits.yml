@@ -8,6 +8,9 @@ on:
     branches:
       - '**'
 
+permissions:
+  contents: read
+
 jobs:
   check-december-commits:
     runs-on: ubuntu-latest
