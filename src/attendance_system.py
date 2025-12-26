@@ -7,6 +7,11 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
+# Suppress TensorFlow logging BEFORE importing models
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import warnings
+warnings.filterwarnings('ignore')
+
 import cv2
 import numpy as np
 
@@ -51,7 +56,7 @@ class AttendanceSystem:
 
     def __init__(self):
         """Initialize attendance system with face manager and model backends."""
-        self.face_manager = FaceManager()
+        self._face_manager: Optional[FaceManager] = None  # Lazy initialization
         # Model selection flags (default to InsightFace)
         self.use_cnn_model: bool = USE_CNN_MODEL
         self.use_embedding_model: bool = False
@@ -67,14 +72,26 @@ class AttendanceSystem:
         self.custom_embedding_model_available: bool = False
         
         self._last_captured_image = None
-        # Clear any existing embeddings and reload from database
-        self.face_manager.clear_embeddings()
-        self._load_existing_users()
+        self._users_loaded: bool = False
+        # Models will be loaded on first use (lazy loading)
+
+    @property
+    def face_manager(self) -> FaceManager:
+        """Lazy load face manager on first access."""
+        if self._face_manager is None:
+            print("🔄 Initializing face recognition models... (this may take 10-15 seconds on first load)")
+            self._face_manager = FaceManager()
+            self._face_manager.clear_embeddings()
+            print("✅ Face recognition models loaded successfully")
+        return self._face_manager
 
     def _load_existing_users(self) -> None:
         """Load all existing users from database folder."""
+        if self._users_loaded:
+            return
         loaded_count = self.face_manager.load_all_database_users()
         print(f"Loaded {loaded_count} users from database")
+        self._users_loaded = True
 
     def mark_attendance(
         self, input_source: Union[np.ndarray, str, int],
@@ -92,6 +109,9 @@ class AttendanceSystem:
         Returns:
             Dictionary with attendance result and metadata
         """
+        # Lazy load users on first request
+        self._load_existing_users()
+        
         print(f"📋 Starting attendance marking process with input type: {type(input_source)}")
         
         # Get image from input source
@@ -301,6 +321,8 @@ class AttendanceSystem:
         Returns:
             List of user names
         """
+        # Lazy load users on first request
+        self._load_existing_users()
         return self.face_manager.get_user_list()
 
     def add_new_user(self, user_name: str, image_files: List[str]) -> Dict[str, Any]:

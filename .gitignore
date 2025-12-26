@@ -1,13 +1,41 @@
+# Virtual environment
+venv/
 .venv/
 .conda/
+
+# Python cache
 __pycache__/
-.pytest_cache/
 *.pyc
 *.pyo
 *.pyd
-*.vscode
+
+# Test cache
+.pytest_cache/
+
+# IDE settings
+.vscode/
+
+# macOS
 .DS_Store
 
+# Log files
+*.log
+
+# Coverage reports
+htmlcov/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Generated data and models
+/attendance_records/
+/embeddings/
+/cnn_models/
+/embedding_models/
+/custom_embedding_models/
+
 # Ignore alternate database directories (use only 'database/')
-database1/
-database2/
+/database1/
+/database2/

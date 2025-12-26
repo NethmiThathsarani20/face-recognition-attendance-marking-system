@@ -19,8 +19,12 @@ except ImportError:
     from attendance_system import AttendanceSystem
     from config import ALLOWED_EXTENSIONS, WEB_DEBUG, WEB_HOST, WEB_PORT, ATTENDANCE_DIR
 
+# Get absolute paths for templates and static folders
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-app = Flask(__name__, template_folder="../templates", static_folder="../static")
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
 # Initialize attendance system
@@ -643,6 +647,9 @@ def get_attendance_by_date_range(start_date, end_date):
 
 def run_app():
     """Run the Flask application."""
+    print("Starting Simple Attendance System...")
+    print(f"Open your browser and go to: http://{WEB_HOST}:{WEB_PORT}")
+    print("Press Ctrl+C to stop the server")
     app.run(host=WEB_HOST, port=WEB_PORT, debug=WEB_DEBUG)
 
 
