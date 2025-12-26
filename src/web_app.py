@@ -27,8 +27,10 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
-# Initialize attendance system
+# Initialize attendance system and set to use embedding model (LogisticRegression + InsightFace)
 attendance_system = AttendanceSystem()
+# Use embedding model (LogisticRegression + InsightFace) for best performance on Raspberry Pi
+attendance_system.switch_to_embedding_model()
 
 
 def allowed_file(filename):
@@ -188,10 +190,11 @@ def camera_test(camera_source):
     return jsonify({"success": False, "message": error_message})
 
 
-@app.route("/cnn_training")
-def cnn_training():
-    """CNN training page."""
-    return render_template("cnn_training.html")
+# CNN training page removed - using only custom embedding model for Raspberry Pi optimization
+# @app.route("/cnn_training")
+# def cnn_training():
+#     """CNN training page."""
+#     return render_template("cnn_training.html")
 
 
 @app.route("/model_status")
@@ -205,200 +208,201 @@ def model_status():
 
 
 
-
-@app.route("/cnn_switch_model", methods=["POST"])
-def cnn_switch_model():
-    """Switch between CNN, Embedding, and InsightFace models."""
-    try:
-        data = request.get_json()
-        model_type = data.get("model_type", "insightface")
-
-        if model_type == "cnn":
-            attendance_system.switch_to_cnn_model()
-        elif model_type == "embedding":
-            attendance_system.switch_to_embedding_model()
-        elif model_type in ("custom_embedding", "custom-embedding"):
-            attendance_system.switch_to_custom_embedding_model()
-        else:
-            attendance_system.switch_to_insightface_model()
-
-        return jsonify({"success": True, "message": f"Switched to {model_type} model"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
-
-
-# Separate switch endpoints for each model (simple to call from UI)
-@app.route("/switch/insightface", methods=["POST"])
-def switch_insightface():
-    try:
-        attendance_system.switch_to_insightface_model()
-        return jsonify({"success": True, "message": "Switched to insightface model"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+# Model switching disabled - using only custom embedding model for Raspberry Pi
+# @app.route("/cnn_switch_model", methods=["POST"])
+# def cnn_switch_model():
+#     """Switch between CNN, Embedding, and InsightFace models."""
+#     try:
+#         data = request.get_json()
+#         model_type = data.get("model_type", "insightface")
+# 
+#         if model_type == "cnn":
+#             attendance_system.switch_to_cnn_model()
+#         elif model_type == "embedding":
+#             attendance_system.switch_to_embedding_model()
+#         elif model_type in ("custom_embedding", "custom-embedding"):
+#             attendance_system.switch_to_custom_embedding_model()
+#         else:
+#             attendance_system.switch_to_insightface_model()
+# 
+#         return jsonify({"success": True, "message": f"Switched to {model_type} model"})
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
 
 
-@app.route("/switch/cnn", methods=["POST"])
-def switch_cnn():
-    try:
-        attendance_system.switch_to_cnn_model()
-        return jsonify({"success": True, "message": "Switched to cnn model"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+# Separate switch endpoints removed - using only custom embedding
+# @app.route("/switch/insightface", methods=["POST"])
+# def switch_insightface():
+#     try:
+#         attendance_system.switch_to_insightface_model()
+#         return jsonify({"success": True, "message": "Switched to insightface model"})
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
 
 
-@app.route("/switch/embedding", methods=["POST"])
-def switch_embedding():
-    try:
-        attendance_system.switch_to_embedding_model()
-        return jsonify({"success": True, "message": "Switched to embedding model"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+# @app.route("/switch/cnn", methods=["POST"])
+# def switch_cnn():
+#     try:
+#         attendance_system.switch_to_cnn_model()
+#         return jsonify({"success": True, "message": "Switched to cnn model"})
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
 
 
-@app.route("/switch/custom_embedding", methods=["POST"])
-def switch_custom_embedding():
-    try:
-        attendance_system.switch_to_custom_embedding_model()
-        return jsonify({"success": True, "message": "Switched to custom embedding model"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+# @app.route("/switch/embedding", methods=["POST"])
+# def switch_embedding():
+#     try:
+#         attendance_system.switch_to_embedding_model()
+#         return jsonify({"success": True, "message": "Switched to embedding model"})
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
+
+
+# @app.route("/switch/custom_embedding", methods=["POST"])
+# def switch_custom_embedding():
+#     try:
+#         attendance_system.switch_to_custom_embedding_model()
+#         return jsonify({"success": True, "message": "Switched to custom embedding model"})
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
 
 
 
 
-@app.route("/cnn_prepare_data", methods=["POST"])
-def cnn_prepare_data():
-    """Prepare training data."""
-    try:
-        cnn_trainer = attendance_system.get_cnn_trainer()
-        success = cnn_trainer.prepare_training_data()
-
-        if success:
-            users_count = len(set(cnn_trainer.training_labels))
-            samples_count = len(cnn_trainer.training_data)
-            return jsonify(
-                {
-                    "success": True,
-                    "message": "Training data prepared successfully",
-                    "users_count": users_count,
-                    "samples_prepared": samples_count,
-                },
-            )
-        return jsonify({"success": False, "message": "No training data found"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
-
-
-@app.route("/cnn_train", methods=["POST"])
-def cnn_train():
-    """Train the CNN model."""
-    try:
-        data = request.get_json()
-        epochs = data.get("epochs", 50)
-
-        cnn_trainer = attendance_system.get_cnn_trainer()
-
-        # Prepare data first
-        if not cnn_trainer.prepare_training_data():
-            return jsonify({"success": False, "message": "No training data available"})
-
-        # Train model
-        result = cnn_trainer.train_model(epochs=epochs)
-        return jsonify(result)
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
-
-
-@app.route("/cnn_add_training_images", methods=["POST"])
-def cnn_add_training_images():
-    """Add training images for a user."""
-    try:
-        user_name = request.form.get("user_name")
-        uploaded_files = request.files.getlist("images")
-
-        if not user_name:
-            return jsonify({"success": False, "message": "User name is required"})
-
-        if not uploaded_files:
-            return jsonify({"success": False, "message": "No images provided"})
-
-        # Create user directory
-        from config import DATABASE_DIR
-
-        user_dir = os.path.join(DATABASE_DIR, user_name)
-        os.makedirs(user_dir, exist_ok=True)
-
-        processed_count = 0
-        for file in uploaded_files:
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                # Add timestamp to avoid conflicts
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"{timestamp}_{filename}"
-                file_path = os.path.join(user_dir, filename)
-                file.save(file_path)
-                processed_count += 1
-
-        if processed_count > 0:
-            # Update face manager database
-            attendance_system.face_manager.add_user_from_database_folder(user_name)
-
-            return jsonify(
-                {
-                    "success": True,
-                    "message": f"Added {processed_count} training images",
-                    "images_processed": processed_count,
-                },
-            )
-        return jsonify({"success": False, "message": "No valid images processed"})
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
-
-
-@app.route("/cnn_add_training_video", methods=["POST"])
-def cnn_add_training_video():
-    """Extract training data from video."""
-    try:
-        user_name = request.form.get("user_name")
-        video_file = request.files.get("video")
-        frame_interval = int(request.form.get("frame_interval", 30))
-
-        if not user_name:
-            return jsonify({"success": False, "message": "User name is required"})
-
-        if not video_file or not video_file.filename:
-            return jsonify({"success": False, "message": "No video file provided"})
-
-        # Save video temporarily
-        filename = secure_filename(video_file.filename)
-        temp_path = os.path.join("temp", filename)
-        os.makedirs("temp", exist_ok=True)
-        video_file.save(temp_path)
-
-        try:
-            # Extract training data
-            cnn_trainer = attendance_system.get_cnn_trainer()
-            result = cnn_trainer.add_training_data_from_video(
-                temp_path, user_name, frame_interval,
-            )
-
-            # Update face manager database
-            if result["success"]:
-                attendance_system.face_manager.add_user_from_database_folder(user_name)
-
-            return jsonify(result)
-
-        finally:
-            # Clean up temporary file
-            try:
-                os.remove(temp_path)
-            except OSError:
-                pass
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+# CNN training endpoints removed - not needed for Raspberry Pi deployment
+# @app.route("/cnn_prepare_data", methods=["POST"])
+# def cnn_prepare_data():
+#     """Prepare training data."""
+#     try:
+#         cnn_trainer = attendance_system.get_cnn_trainer()
+#         success = cnn_trainer.prepare_training_data()
+# 
+#         if success:
+#             users_count = len(set(cnn_trainer.training_labels))
+#             samples_count = len(cnn_trainer.training_data)
+#             return jsonify(
+#                 {
+#                     "success": True,
+#                     "message": "Training data prepared successfully",
+#                     "users_count": users_count,
+#                     "samples_prepared": samples_count,
+#                 },
+#             )
+#         return jsonify({"success": False, "message": "No training data found"})
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
+# 
+# 
+# @app.route("/cnn_train", methods=["POST"])
+# def cnn_train():
+#     """Train the CNN model."""
+#     try:
+#         data = request.get_json()
+#         epochs = data.get("epochs", 50)
+# 
+#         cnn_trainer = attendance_system.get_cnn_trainer()
+# 
+#         # Prepare data first
+#         if not cnn_trainer.prepare_training_data():
+#             return jsonify({"success": False, "message": "No training data available"})
+# 
+#         # Train model
+#         result = cnn_trainer.train_model(epochs=epochs)
+#         return jsonify(result)
+# 
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
+# 
+# 
+# @app.route("/cnn_add_training_images", methods=["POST"])
+# def cnn_add_training_images():
+#     """Add training images for a user."""
+#     try:
+#         user_name = request.form.get("user_name")
+#         uploaded_files = request.files.getlist("images")
+# 
+#         if not user_name:
+#             return jsonify({"success": False, "message": "User name is required"})
+# 
+#         if not uploaded_files:
+#             return jsonify({"success": False, "message": "No images provided"})
+# 
+#         # Create user directory
+#         from config import DATABASE_DIR
+# 
+#         user_dir = os.path.join(DATABASE_DIR, user_name)
+#         os.makedirs(user_dir, exist_ok=True)
+# 
+#         processed_count = 0
+#         for file in uploaded_files:
+#             if file and file.filename and allowed_file(file.filename):
+#                 filename = secure_filename(file.filename)
+#                 # Add timestamp to avoid conflicts
+#                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#                 filename = f"{timestamp}_{filename}"
+#                 file_path = os.path.join(user_dir, filename)
+#                 file.save(file_path)
+#                 processed_count += 1
+# 
+#         if processed_count > 0:
+#             # Update face manager database
+#             attendance_system.face_manager.add_user_from_database_folder(user_name)
+# 
+#             return jsonify(
+#                 {
+#                     "success": True,
+#                     "message": f"Added {processed_count} training images",
+#                     "images_processed": processed_count,
+#                 },
+#             )
+#         return jsonify({"success": False, "message": "No valid images processed"})
+# 
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
+# 
+# 
+# @app.route("/cnn_add_training_video", methods=["POST"])
+# def cnn_add_training_video():
+#     """Extract training data from video."""
+#     try:
+#         user_name = request.form.get("user_name")
+#         video_file = request.files.get("video")
+#         frame_interval = int(request.form.get("frame_interval", 30))
+# 
+#         if not user_name:
+#             return jsonify({"success": False, "message": "User name is required"})
+# 
+#         if not video_file or not video_file.filename:
+#             return jsonify({"success": False, "message": "No video file provided"})
+# 
+#         # Save video temporarily
+#         filename = secure_filename(video_file.filename)
+#         temp_path = os.path.join("temp", filename)
+#         os.makedirs("temp", exist_ok=True)
+#         video_file.save(temp_path)
+# 
+#         try:
+#             # Extract training data
+#             cnn_trainer = attendance_system.get_cnn_trainer()
+#             result = cnn_trainer.add_training_data_from_video(
+#                 temp_path, user_name, frame_interval,
+#             )
+# 
+#             # Update face manager database
+#             if result["success"]:
+#                 attendance_system.face_manager.add_user_from_database_folder(user_name)
+# 
+#             return jsonify(result)
+# 
+#         finally:
+#             # Clean up temporary file
+#             try:
+#                 os.remove(temp_path)
+#             except OSError:
+#                 pass
+# 
+#     except Exception as e:
+#         return jsonify({"success": False, "message": str(e)})
 
 
 @app.route("/export_attendance_pdf", methods=["GET"])
