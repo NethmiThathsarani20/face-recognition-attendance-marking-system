@@ -649,7 +649,7 @@ matplotlib         # Visualization
 
 Use the included utility:
 ```bash
-python find_ip_by_mac.py 80:f3:da:62:14:c0
+python ip.py 80:f3:da:62:14:c0
 ```
 
 ---
@@ -927,7 +927,7 @@ python train.py --epochs 30
 make lint
 
 # Find device IP
-python find_ip_by_mac.py <MAC_ADDRESS>
+python ip.py <MAC_ADDRESS>
 ```
 
 ### Network Examples

@@ -272,7 +272,7 @@ Press `Ctrl+C` in the terminal to stop the server.
 
 Use the included script to find device IP by MAC address:
 ```bash
-python find_ip_by_mac.py 80:f3:da:62:14:c0
+python ip.py 80:f3:da:62:14:c0
 ```
 
 ---
@@ -556,7 +556,7 @@ python setup.py
 python verify_requirements.py
 
 # Find device by MAC address
-python find_ip_by_mac.py <MAC_ADDRESS>
+python ip.py <MAC_ADDRESS>
 
 # Sync database to GitHub (Raspberry Pi)
 ./scripts/edge_sync.sh "Commit message"
