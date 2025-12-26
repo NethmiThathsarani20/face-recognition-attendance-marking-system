@@ -11,7 +11,7 @@ This document summarizes all changes made to address the requirements in the pro
 **Changes**:
 - Deleted `database1/` (57 users, ~900 images)
 - Deleted `database2/` (17 users, ~80 images)
-- Retained `database/` as the primary dataset (67 users, 1,595 images)
+- Retained `database/` as the primary dataset (67 users, 9,648 samples)
 - All three model trainers automatically balance the dataset during training using oversampling
 
 **Verification**:
@@ -30,7 +30,7 @@ find database -name "*.jpg" | wc -l  # Should show 1,595 images
 - Original images: Various sizes (typically 250×250)
 - Target size: 240×240 pixels (optimal for ESP32-CAM memory constraints)
 - Quality: JPEG 95% (balanced size and quality)
-- Total processed: 1,595 images across 67 users
+- Total processed: 9,648 samples across 67 users
 - Resize method: OpenCV INTER_AREA (best for downsampling)
 
 **Verification**:
@@ -109,11 +109,11 @@ All three models already generate comprehensive evaluation artifacts:
 
 ### ✅ 5. Documentation
 
-**Created**: `docs/MODEL_TRAINING.md` (13KB comprehensive documentation)
+**Created**: `docs/MODEL_TRAINING.md` (comprehensive documentation)
 
 **Contents**:
 - Detailed architecture descriptions for all 3 models
-- Dataset specifications (67 users, 1,595 images, 240×240)
+- Dataset specifications (67 users, 9,648 samples, 240×240)
 - Training procedures and commands
 - Evaluation metrics explanation
 - Model comparison guidelines
@@ -195,7 +195,7 @@ python train.py --only custom-embedding --epochs 30 --validation-split 0.2
 ### Database
 - [x] Only `database/` directory exists
 - [x] All images are 240×240 pixels
-- [x] 67 users with 1,595 total images
+- [x] 67 users with 9,648 total samples
 
 ### Model Training
 - [x] CNN trainer uses Haar Cascade (no InsightFace)

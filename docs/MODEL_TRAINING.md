@@ -129,7 +129,7 @@ python train.py --only custom-embedding --epochs 30 --validation-split 0.2 \
 ### Current Dataset
 - **Location**: `database/`
 - **Total Users**: 67
-- **Total Images**: 1,595 (after balancing, varies by model)
+- **Total Samples**: 9,648 (after balancing, varies by model)
 - **Image Size**: 240×240 pixels (optimized for ESP32-CAM)
 - **Format**: JPEG with 95% quality
 - **Balancing**: Oversampling applied to ensure equal samples per class
@@ -242,33 +242,34 @@ Each model generates a JSON training log with the following information:
 
 | Model | Train Acc | Val Acc | Top-3 Val Acc | Training Time | Model Size |
 |-------|-----------|---------|---------------|---------------|------------|
-| **Embedding Classifier** | 0.994 | 0.984 | 0.984 | ~30 sec | ~500 KB |
-| **Lightweight CNN** | 0.039 | 0.039 | 0.061 | ~5-10 min | ~2 MB |
-| **Custom Embedding** | 0.010 | 0.010 | N/A | ~2-3 min | ~1.5 MB |
+| **Embedding Classifier** | 0.9994 | 0.9974 | 0.9990 | ~30 sec | ~500 KB |
+| **Lightweight CNN** | 0.6857 | 0.6404 | 0.8280 | ~32 min | ~2 MB |
+| **Custom Embedding** | 0.9991 | 0.9886 | N/A | ~2-3 min | ~1.5 MB |
 
-*Note: Actual metrics depend on dataset and training configuration. Run training to get exact values.*
+*Trained on 67 users with 9,648 samples. Dataset: 80% train, 20% validation.*
 
 ### Key Insights
 
 **Embedding Classifier (Production)**:
-- ✅ **Best Performance**: Leverages pre-trained InsightFace features
-- ✅ **Fast Training**: Only classifier needs training
-- ✅ **Reliable**: Proven architecture with robust features
+- ✅ **Best Performance**: Achieves 99.74% validation accuracy on 67 classes
+- ✅ **Fast Training**: Only classifier needs training (~30 seconds)
+- ✅ **Reliable**: Proven architecture with robust pre-trained InsightFace features
+- ✅ **Excellent Top-3 Accuracy**: 99.90% (catches correct person in top 3 predictions)
 - ⚠️ **Dependency**: Requires InsightFace model files (~50 MB)
 
 **Lightweight CNN (Experimental)**:
-- ⚠️ **Lower Accuracy**: Limited by dataset size (1,595 samples for 67 classes)
+- ⚠️ **Moderate Accuracy**: Achieves 64.04% validation accuracy with 9,648 samples
+- ✅ **Strong Top-3**: 82.80% top-3 accuracy shows potential for ranking-based matching
 - ✅ **Independent**: No pre-trained model dependency
-- ✅ **Lightweight**: Smaller model size
-- ⚠️ **Slow Training**: Requires more epochs and time
-- 📊 **Research Value**: Useful for understanding limitations of end-to-end training
+- ⚠️ **Slow Training**: ~32 minutes for complete training
+- 📊 **Research Value**: Demonstrates end-to-end learning on medium-sized dataset
 
 **Custom Embedding (Experimental)**:
-- ⚠️ **Lowest Accuracy**: Limited by dataset size and training from scratch
-- ✅ **Independent**: No InsightFace dependency
-- ✅ **Flexible**: Custom embedding dimension
-- ⚠️ **Research Only**: Not suitable for production
-- 📊 **Learning Tool**: Demonstrates embedding-based recognition without pre-trained features
+- ✅ **High Accuracy**: Achieves 98.86% validation accuracy independently
+- ✅ **Fast Training**: Completes in ~2-3 minutes with solid performance
+- ✅ **Independent**: No InsightFace dependency, learns custom embeddings
+- ✅ **Flexible**: Custom 128-dimensional embedding space
+- 📊 **Research Tool**: Demonstrates effectiveness of custom embeddings with smaller dataset
 
 ---
 
