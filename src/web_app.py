@@ -152,8 +152,24 @@ def mark_attendance_upload():
 
 @app.route("/get_attendance")
 def get_attendance():
-    """Get today's attendance records."""
-    attendance = attendance_system.get_today_attendance()
+    """Get attendance records, optionally filtered by date range."""
+    start_date = request.args.get('start_date', '')
+    end_date = request.args.get('end_date', '')
+    
+    if start_date and end_date:
+        # Validate date format
+        try:
+            from datetime import datetime as dt
+            dt.strptime(start_date, '%Y-%m-%d')
+            dt.strptime(end_date, '%Y-%m-%d')
+            # Get attendance for date range
+            attendance = get_attendance_by_date_range(start_date, end_date)
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+    else:
+        # Get today's attendance
+        attendance = attendance_system.get_today_attendance()
+    
     return jsonify(attendance)
 
 
@@ -162,6 +178,18 @@ def get_users():
     """Get list of registered users."""
     users = attendance_system.get_user_list()
     return jsonify(users)
+
+
+@app.route("/delete_user/<user_name>", methods=["DELETE"])
+def delete_user(user_name):
+    """Delete a registered user."""
+    # Validate user_name contains only safe characters
+    import re
+    if not re.match(r'^[\w\s\-]+$', user_name):
+        return jsonify({"success": False, "message": "Invalid user name format"}), 400
+    
+    result = attendance_system.delete_user(user_name)
+    return jsonify(result)
 
 
 @app.route("/camera_test/<path:camera_source>")

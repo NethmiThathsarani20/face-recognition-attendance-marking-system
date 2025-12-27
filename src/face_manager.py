@@ -4,6 +4,7 @@ Simple implementation with default settings.
 
 import os
 import pickle
+import shutil
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -232,6 +233,34 @@ class FaceManager:
             List of user names
         """
         return list(self.face_database.keys())
+
+    def delete_user(self, user_name: str) -> bool:
+        """Delete a user from the face database and optionally their image folder.
+
+        Args:
+            user_name: Name of the user to delete
+
+        Returns:
+            True if user was deleted successfully, False otherwise
+        """
+        if user_name not in self.face_database:
+            return False
+        
+        # Remove from in-memory database
+        del self.face_database[user_name]
+        
+        # Save updated database
+        self._save_face_database()
+        
+        # Optionally delete user's image folder from database directory
+        user_dir = os.path.join(DATABASE_DIR, user_name)
+        if os.path.exists(user_dir):
+            try:
+                shutil.rmtree(user_dir)
+            except Exception as e:
+                print(f"Warning: Could not delete user directory {user_dir}: {e}")
+        
+        return True
 
     def clear_embeddings(self) -> None:
         """Clear all face embeddings from memory and storage."""
