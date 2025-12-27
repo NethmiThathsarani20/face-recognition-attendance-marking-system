@@ -656,7 +656,7 @@
                 .then(users => {
                     if (users.length > 0) {
                         // Clear existing content
-                        usersList.innerHTML = '';
+                        usersList.replaceChildren();
                         
                         // Create users grid
                         const usersGrid = document.createElement('div');
@@ -695,7 +695,7 @@
                         usersList.appendChild(usersGrid);
                     } else {
                         // Clear existing content
-                        usersList.innerHTML = '';
+                        usersList.replaceChildren();
                         
                         // Create "no users" message
                         const noUsersMsg = document.createElement('p');
@@ -718,7 +718,7 @@
                 })
                 .catch(error => {
                     // Clear existing content
-                    usersList.innerHTML = '';
+                    usersList.replaceChildren();
                     
                     // Create error message using textContent to prevent XSS
                     const errorContainer = document.createElement('p');
