@@ -122,11 +122,12 @@ class FaceManager:
 
         return False
 
-    def add_user_from_database_folder(self, user_name: str) -> bool:
+    def add_user_from_database_folder(self, user_name: str, max_images: int = 5) -> bool:
         """Add user from existing database folder structure.
 
         Args:
             user_name: Name of the user (folder name in database)
+            max_images: Maximum number of images to process per user (default: 5 for fast loading)
 
         Returns:
             True if successfully added, False otherwise
@@ -142,10 +143,19 @@ class FaceManager:
         if not os.path.exists(user_folder):
             return False
 
-        image_paths = []
+        # Get all image paths and limit to max_images for faster loading
+        all_image_paths = []
         for filename in os.listdir(user_folder):
             if filename.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                image_paths.append(os.path.join(user_folder, filename))
+                all_image_paths.append(os.path.join(user_folder, filename))
+        
+        # Limit images per user for faster initial load
+        # Select evenly distributed images if we have more than max_images
+        if len(all_image_paths) > max_images:
+            step = len(all_image_paths) // max_images
+            image_paths = [all_image_paths[i * step] for i in range(max_images)]
+        else:
+            image_paths = all_image_paths
 
         return self.add_user_images(user_name, image_paths)
 
@@ -178,8 +188,11 @@ class FaceManager:
 
         return (best_match, float(best_score)) if best_match else None
 
-    def load_all_database_users(self) -> int:
+    def load_all_database_users(self, max_images_per_user: int = 5) -> int:
         """Load all users from the database folder structure.
+
+        Args:
+            max_images_per_user: Maximum number of images to process per user (default: 5 for fast loading)
 
         Returns:
             Number of users successfully loaded
@@ -192,12 +205,13 @@ class FaceManager:
         print(f"📂 Scanning database directory: {DATABASE_DIR}", file=sys.stderr)
         user_folders = [f for f in os.listdir(DATABASE_DIR) if os.path.isdir(os.path.join(DATABASE_DIR, f))]
         print(f"📊 Found {len(user_folders)} user folders", file=sys.stderr)
+        print(f"⚡ Fast mode: Processing max {max_images_per_user} images per user", file=sys.stderr)
         
         loaded_count = 0
         for idx, user_folder in enumerate(user_folders, 1):
             user_path = os.path.join(DATABASE_DIR, user_folder)
             print(f"   [{idx}/{len(user_folders)}] Loading user: {user_folder}...", file=sys.stderr, end=' ')
-            if self.add_user_from_database_folder(user_folder):
+            if self.add_user_from_database_folder(user_folder, max_images=max_images_per_user):
                 loaded_count += 1
                 print("✅", file=sys.stderr)
             else:

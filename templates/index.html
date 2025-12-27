@@ -62,8 +62,8 @@
             <div class="loading-content">
                 <div class="spinner"></div>
                 <h3>🔄 Initializing Face Recognition System...</h3>
-                <p><strong>First time setup:</strong> May take 5-10 minutes to download models and process user data.</p>
-                <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.8;">✨ Subsequent loads will be instant (< 1 second) using cached data!</p>
+                <p><strong>First time setup:</strong> Typically 2-3 minutes to download models and process user data.</p>
+                <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.8;">✨ Subsequent loads are instant (< 1 second) using cached data!</p>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress_fill"></div>
                 </div>
@@ -243,9 +243,9 @@
             }, 3000);
             
             // Create AbortController for timeout handling
-            // Timeout: 10 minutes to handle first-time model download + user loading
+            // Timeout: 5 minutes to handle first-time model download + user loading
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout
+            const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
             
             // Initialize system in background
             fetch('/initialize_system', {
@@ -299,13 +299,13 @@
                 let troubleshooting = '';
                 
                 if (error.name === 'AbortError') {
-                    errorMessage = 'Initialization timeout (exceeded 10 minutes)';
+                    errorMessage = 'Initialization timeout (exceeded 5 minutes)';
                     troubleshooting = `
                         <div style="margin-top: 15px; text-align: left; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                             <strong>Possible causes:</strong><br>
-                            • First-time model download taking too long (check internet connection)<br>
+                            • Slow internet connection for model download<br>
                             • System resources exhausted (check CPU/memory)<br>
-                            • Database has too many users/images (67+ users can take 5-10 minutes)<br>
+                            • Large database (67+ users should complete in 2-3 minutes)<br>
                             <br>
                             <strong>Suggestions:</strong><br>
                             • Ensure stable internet connection for model download<br>
