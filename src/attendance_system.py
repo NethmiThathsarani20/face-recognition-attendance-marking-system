@@ -101,8 +101,6 @@ class AttendanceSystem:
             import sys
             print("🔄 Initializing face recognition models... (this may take 10-15 seconds on first load)", file=sys.stderr)
             self._face_manager = FaceManager()
-            # Don't clear embeddings - we want to use cached data for fast loading!
-            # self._face_manager.clear_embeddings()  # REMOVED - this was causing slow loading
             print("✅ Face recognition models loaded successfully", file=sys.stderr)
         return self._face_manager
 
