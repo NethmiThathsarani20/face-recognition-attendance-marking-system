@@ -188,6 +188,58 @@ def camera_test(camera_source):
     return jsonify({"success": False, "message": error_message})
 
 
+@app.route("/video_feed/<path:camera_source>")
+def video_feed(camera_source):
+    """Video streaming route with face detection and recognition."""
+    # Convert camera_source to appropriate type
+    if camera_source.isdigit():
+        camera_source = int(camera_source)
+    
+    return make_response(
+        generate_video_frames(camera_source),
+        200,
+        {'Content-Type': 'multipart/x-mixed-replace; boundary=frame'}
+    )
+
+
+def generate_video_frames(camera_source):
+    """Generate video frames with face detection and bounding boxes."""
+    cap = None
+    try:
+        cap = cv2.VideoCapture(camera_source)
+        if not cap or not cap.isOpened():
+            print(f"❌ Failed to open camera: {camera_source}")
+            return
+        
+        # Set buffer size for better performance
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                print("❌ Failed to read frame")
+                break
+            
+            # Detect and draw faces with names
+            frame_with_boxes = attendance_system.draw_faces_with_names(frame)
+            
+            # Encode frame as JPEG
+            ret, buffer = cv2.imencode('.jpg', frame_with_boxes, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            if not ret:
+                continue
+            
+            # Yield frame in multipart format
+            frame_bytes = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+    
+    except Exception as e:
+        print(f"❌ Video streaming error: {e}")
+    finally:
+        if cap is not None:
+            cap.release()
+
+
 # CNN training page removed - using only custom embedding model for Raspberry Pi optimization
 # @app.route("/cnn_training")
 # def cnn_training():

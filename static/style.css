@@ -768,6 +768,16 @@ img {
     animation: fadeIn 0.5s ease-in;
 }
 
+/* Pulse animation for live stream indicator */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
 /* Print styles for PDF */
 @media print {
     body {
