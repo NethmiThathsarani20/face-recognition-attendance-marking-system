@@ -109,7 +109,7 @@
                     • With authentication: http://username:password@192.168.1.100:8080/video<br>
                     • RTSP: rtsp://192.168.1.100:554/stream
                 </div>
-                <button onclick="toggleLiveStream()"><i class="fas fa-video"></i> Start Live Stream</button>
+                <button id="start_stream_btn" onclick="toggleLiveStream()"><i class="fas fa-video"></i> Start Live Stream</button>
                 <button onclick="testCamera()"><i class="fas fa-vial"></i> Test Camera</button>
                 <button onclick="markAttendanceCamera()" class="btn-success"><i class="fas fa-camera"></i> Mark Attendance</button>
                 <button onclick="stopLiveStream()" style="display: none;" id="stop_stream_btn" class="btn-danger"><i class="fas fa-stop"></i> Stop Stream</button>
@@ -453,7 +453,7 @@
             `;
             
             isStreamActive = true;
-            document.querySelector('button[onclick="toggleLiveStream()"]').style.display = 'none';
+            document.getElementById('start_stream_btn').style.display = 'none';
             document.getElementById('stop_stream_btn').style.display = 'inline-block';
         }
         
@@ -467,7 +467,7 @@
             resultDiv.innerHTML = '<p class="info-text"><i class="fas fa-info-circle"></i> Stream stopped</p>';
             
             isStreamActive = false;
-            document.querySelector('button[onclick="toggleLiveStream()"]').style.display = 'inline-block';
+            document.getElementById('start_stream_btn').style.display = 'inline-block';
             document.getElementById('stop_stream_btn').style.display = 'none';
         }
         
@@ -480,7 +480,7 @@
                 </div>
             `;
             isStreamActive = false;
-            document.querySelector('button[onclick="toggleLiveStream()"]').style.display = 'inline-block';
+            document.getElementById('start_stream_btn').style.display = 'inline-block';
             document.getElementById('stop_stream_btn').style.display = 'none';
         }
         

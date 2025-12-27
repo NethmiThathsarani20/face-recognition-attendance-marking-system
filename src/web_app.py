@@ -237,8 +237,8 @@ def generate_video_frames(camera_source):
             # Detect and draw faces with names
             frame_with_boxes = attendance_system.draw_faces_with_names(frame)
             
-            # Encode frame as JPEG
-            ret, buffer = cv2.imencode('.jpg', frame_with_boxes, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            # Encode frame as JPEG with balanced quality for streaming
+            ret, buffer = cv2.imencode('.jpg', frame_with_boxes, [cv2.IMWRITE_JPEG_QUALITY, 75])
             if not ret:
                 continue
             
