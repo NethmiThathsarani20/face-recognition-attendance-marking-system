@@ -505,6 +505,36 @@ img {
     box-shadow: var(--shadow-md);
 }
 
+.live-stream-video {
+    max-width: 100%;
+    border: 2px solid var(--secondary-color);
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: var(--shadow-lg);
+}
+
+.streaming-status {
+    margin-top: 10px;
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.streaming-indicator {
+    animation: pulse 1.5s infinite;
+}
+
+.info-text {
+    color: var(--text-secondary);
+}
+
+.error-text {
+    color: var(--danger-color);
+}
+
+.small-text {
+    font-size: 0.9em;
+}
+
 #preview_container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -766,6 +796,16 @@ img {
 
 .fade-in {
     animation: fadeIn 0.5s ease-in;
+}
+
+/* Pulse animation for live stream indicator */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
 }
 
 /* Print styles for PDF */

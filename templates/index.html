@@ -109,8 +109,10 @@
                     • With authentication: http://username:password@192.168.1.100:8080/video<br>
                     • RTSP: rtsp://192.168.1.100:554/stream
                 </div>
+                <button id="start_stream_btn" onclick="toggleLiveStream()"><i class="fas fa-video"></i> Start Live Stream</button>
                 <button onclick="testCamera()"><i class="fas fa-vial"></i> Test Camera</button>
                 <button onclick="markAttendanceCamera()" class="btn-success"><i class="fas fa-camera"></i> Mark Attendance</button>
+                <button onclick="stopLiveStream()" style="display: none;" id="stop_stream_btn" class="btn-danger"><i class="fas fa-stop"></i> Stop Stream</button>
                 
                 <div class="auto-mode-controls">
                     <label>
@@ -417,6 +419,69 @@
             return cameraType === 'local' 
                 ? document.getElementById('camera_index').value 
                 : document.getElementById('camera_url').value;
+        }
+        
+        let isStreamActive = false;
+        
+        function toggleLiveStream() {
+            if (isStreamActive) {
+                stopLiveStream();
+            } else {
+                startLiveStream();
+            }
+        }
+        
+        function startLiveStream() {
+            const cameraSource = getCameraSource();
+            
+            if (!cameraSource || cameraSource.trim() === '') {
+                document.getElementById('camera_result').innerHTML = '<p class="error-text">Please specify a camera source</p>';
+                return;
+            }
+            
+            const resultDiv = document.getElementById('camera_result');
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h4><i class="fas fa-video"></i> Live Stream with Face Detection</h4>
+                    <img id="live_stream_img" src="/video_feed/${encodeURIComponent(cameraSource)}" 
+                         class="live-stream-video"
+                         onerror="handleStreamError()">
+                    <p class="streaming-status">
+                        <i class="fas fa-circle streaming-indicator"></i> Streaming with face detection...
+                    </p>
+                </div>
+            `;
+            
+            isStreamActive = true;
+            document.getElementById('start_stream_btn').style.display = 'none';
+            document.getElementById('stop_stream_btn').style.display = 'inline-block';
+        }
+        
+        function stopLiveStream() {
+            const streamImg = document.getElementById('live_stream_img');
+            if (streamImg) {
+                streamImg.removeAttribute('src');
+            }
+            
+            const resultDiv = document.getElementById('camera_result');
+            resultDiv.innerHTML = '<p class="info-text"><i class="fas fa-info-circle"></i> Stream stopped</p>';
+            
+            isStreamActive = false;
+            document.getElementById('start_stream_btn').style.display = 'inline-block';
+            document.getElementById('stop_stream_btn').style.display = 'none';
+        }
+        
+        function handleStreamError() {
+            const resultDiv = document.getElementById('camera_result');
+            resultDiv.innerHTML = `
+                <div class="error">
+                    <p><i class="fas fa-exclamation-triangle"></i> Failed to connect to camera stream</p>
+                    <p class="small-text">Please check the camera URL and ensure it's accessible</p>
+                </div>
+            `;
+            isStreamActive = false;
+            document.getElementById('start_stream_btn').style.display = 'inline-block';
+            document.getElementById('stop_stream_btn').style.display = 'none';
         }
         
         function testCamera() {

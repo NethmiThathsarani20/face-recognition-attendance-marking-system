@@ -632,3 +632,87 @@ class AttendanceSystem:
         finally:
             cap.release()
             print("📷 Camera released")
+
+    def draw_faces_with_names(self, image: np.ndarray) -> np.ndarray:
+        """Draw bounding boxes and names on detected faces.
+
+        Args:
+            image: Input image as numpy array
+
+        Returns:
+            Image with bounding boxes and labels drawn
+        """
+        # Make a copy to avoid modifying the original
+        output_image = image.copy()
+        
+        try:
+            # Ensure users are loaded
+            self._load_existing_users()
+            
+            # Detect faces using InsightFace
+            faces = self.face_manager.detect_faces(image)
+            
+            if not faces:
+                return output_image
+            
+            # Process each detected face
+            for face in faces:
+                # Get bounding box coordinates
+                bbox = face.bbox.astype(int)
+                x1, y1, x2, y2 = bbox
+                
+                # Try to recognize the face
+                face_embedding = face.normed_embedding
+                
+                # Find best match in database
+                best_match = None
+                best_score = 0
+                
+                for user_name, stored_embedding in self.face_manager.face_database.items():
+                    # Calculate cosine similarity
+                    similarity = np.dot(face_embedding, stored_embedding)
+                    
+                    # Check best_score first (changes during iteration), then threshold (constant)
+                    if similarity > best_score and similarity > SIMILARITY_THRESHOLD:
+                        best_score = similarity
+                        best_match = user_name
+                
+                # Determine label and color
+                if best_match:
+                    label = f"{best_match} ({best_score:.2f})"
+                    box_color = (0, 255, 0)  # Green for recognized
+                    text_bg_color = (0, 200, 0)
+                else:
+                    label = "Unknown"
+                    box_color = (0, 0, 255)  # Red for unknown
+                    text_bg_color = (0, 0, 200)
+                
+                # Draw bounding box
+                cv2.rectangle(output_image, (x1, y1), (x2, y2), box_color, 2)
+                
+                # Draw label background
+                label_size, baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                y1_label = max(y1, label_size[1] + 10)
+                cv2.rectangle(
+                    output_image,
+                    (x1, y1_label - label_size[1] - 10),
+                    (x1 + label_size[0], y1_label + baseline - 10),
+                    text_bg_color,
+                    cv2.FILLED
+                )
+                
+                # Draw label text
+                cv2.putText(
+                    output_image,
+                    label,
+                    (x1, y1_label - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 255),
+                    2
+                )
+        
+        except Exception as e:
+            print(f"Error drawing faces: {e}")
+        
+        return output_image
