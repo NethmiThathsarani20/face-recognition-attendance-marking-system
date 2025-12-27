@@ -37,7 +37,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Face Recognition Attendance System</h1>
+        <h1>Face Recognition Attendance System</h1>
         
         <!-- Navigation -->
         <nav>
@@ -47,13 +47,28 @@
         
         <!-- Stats Cards -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" onclick="showRegisteredUsers()" style="cursor: pointer;">
                 <h3><i class="fas fa-users"></i> <span id="users_count">...</span></h3>
                 <p>Registered Users</p>
             </div>
             <div class="stat-card" style="border-top-color: var(--secondary-color);">
                 <h3 style="color: var(--secondary-color);"><i class="fas fa-check-circle"></i> <span id="attendance_count">...</span></h3>
                 <p>Today's Attendance</p>
+            </div>
+        </div>
+        
+        <!-- Registered Users Modal -->
+        <div id="users_modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-users"></i> Registered Users</h2>
+                    <span class="close" onclick="closeUsersModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="users_list">
+                        <p style="text-align: center; color: #6B7280;"><i class="fas fa-spinner fa-spin"></i> Loading users...</p>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -607,6 +622,64 @@
             }
             
             window.location.href = url;
+        }
+        
+        function showRegisteredUsers() {
+            const modal = document.getElementById('users_modal');
+            const usersList = document.getElementById('users_list');
+            
+            // Show modal
+            modal.style.display = 'block';
+            
+            // Fetch users
+            fetch('/get_users')
+                .then(response => response.json())
+                .then(users => {
+                    if (users.length > 0) {
+                        let html = '<div class="users-grid">';
+                        users.forEach((user, index) => {
+                            html += `
+                                <div class="user-card">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-info">
+                                        <h4>${user}</h4>
+                                        <p>User #${index + 1}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        usersList.innerHTML = html;
+                    } else {
+                        usersList.innerHTML = `
+                            <p style="text-align: center; padding: 40px; color: #6B7280;">
+                                <i class="fas fa-user-slash" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                                No registered users yet.
+                            </p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    usersList.innerHTML = `
+                        <p style="text-align: center; color: #EF4444;">
+                            <i class="fas fa-exclamation-triangle"></i> Error loading users: ${error}
+                        </p>
+                    `;
+                });
+        }
+        
+        function closeUsersModal() {
+            document.getElementById('users_modal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('users_modal');
+            if (event.target === modal) {
+                closeUsersModal();
+            }
         }
     </script>
 </body>
