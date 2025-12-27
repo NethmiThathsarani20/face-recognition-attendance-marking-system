@@ -62,7 +62,8 @@
             <div class="loading-content">
                 <div class="spinner"></div>
                 <h3>🔄 Initializing Face Recognition System...</h3>
-                <p>Loading models and data. This may take 10-15 seconds on first load.</p>
+                <p>Loading models and data. First load may take 30-60 seconds if models need to be downloaded.</p>
+                <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.8;">Subsequent loads will be much faster using cached data.</p>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress_fill"></div>
                 </div>
@@ -216,6 +217,8 @@
             // Start progress animation
             let progress = 0;
             const progressFill = document.getElementById('progress_fill');
+            const loadingContent = document.querySelector('.loading-content');
+            
             const progressInterval = setInterval(() => {
                 progress += 2;
                 if (progress <= 90) {
@@ -223,14 +226,42 @@
                 }
             }, 300);
             
+            // Update status messages during initialization
+            const statusMessages = [
+                '🔄 Initializing Face Recognition System...',
+                '📦 Loading InsightFace models...',
+                '🧠 Preparing face recognition engine...',
+                '👥 Loading user database...',
+                '⚙️ Finalizing setup...'
+            ];
+            let messageIndex = 0;
+            const messageInterval = setInterval(() => {
+                if (messageIndex < statusMessages.length - 1) {
+                    messageIndex++;
+                    loadingContent.querySelector('h3').textContent = statusMessages[messageIndex];
+                }
+            }, 3000);
+            
+            // Create AbortController for timeout handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+            
             // Initialize system in background
             fetch('/initialize_system', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
             })
-            .then(response => response.json())
+            .then(response => {
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 clearInterval(progressInterval);
+                clearInterval(messageInterval);
                 progressFill.style.width = '100%';
                 
                 if (data.success) {
@@ -248,21 +279,51 @@
                     }, 500);
                 } else {
                     document.getElementById('loading_indicator').innerHTML = `
-                        <div class="error">
-                            <h4>⚠️ Initialization Failed</h4>
-                            <p>${data.error || 'Unknown error'}</p>
-                            <button onclick="location.reload()">Retry</button>
+                        <div class="loading-content">
+                            <h3 style="color: #EF4444;">⚠️ Initialization Failed</h3>
+                            <p style="color: #DC2626;">${data.error || 'Unknown error occurred during initialization'}</p>
+                            <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 24px; background: white; color: #6366f1; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-redo"></i> Retry
+                            </button>
                         </div>
                     `;
                 }
             })
             .catch(error => {
                 clearInterval(progressInterval);
+                clearInterval(messageInterval);
+                clearTimeout(timeoutId);
+                
+                let errorMessage = 'An unexpected error occurred';
+                let troubleshooting = '';
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Initialization timeout (exceeded 2 minutes)';
+                    troubleshooting = `
+                        <div style="margin-top: 15px; text-align: left; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                            <strong>Possible causes:</strong><br>
+                            • First-time model download taking too long (check internet connection)<br>
+                            • System resources exhausted (check CPU/memory)<br>
+                            • Database has too many users/images<br>
+                            <br>
+                            <strong>Suggestions:</strong><br>
+                            • Ensure stable internet connection for model download<br>
+                            • Check server logs for detailed error messages<br>
+                            • Try refreshing the page after a moment<br>
+                        </div>
+                    `;
+                } else {
+                    errorMessage = error.message || String(error);
+                }
+                
                 document.getElementById('loading_indicator').innerHTML = `
-                    <div class="error">
-                        <h4>⚠️ Initialization Failed</h4>
-                        <p>Error: ${error}</p>
-                        <button onclick="location.reload()">Retry</button>
+                    <div class="loading-content">
+                        <h3 style="color: #EF4444;">⚠️ Initialization Failed</h3>
+                        <p style="color: #DC2626;">${errorMessage}</p>
+                        ${troubleshooting}
+                        <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 24px; background: white; color: #6366f1; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-redo"></i> Retry
+                        </button>
                     </div>
                 `;
             });

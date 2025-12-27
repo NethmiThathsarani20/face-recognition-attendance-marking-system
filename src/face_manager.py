@@ -40,16 +40,32 @@ class FaceManager:
 
     def __init__(self):
         """Initialize face analysis app with default settings."""
+        import sys
+        print("🔧 Initializing FaceManager...", file=sys.stderr)
+        
         # Configure ONNX Runtime providers to avoid CUDA warning on systems without CUDA
+        print("⚙️  Configuring ONNX Runtime providers...", file=sys.stderr)
         available = ort.get_available_providers()
         providers = [p for p in ("CoreMLExecutionProvider", "CPUExecutionProvider") if p in available]
         if not providers:
             providers = ["CPUExecutionProvider"]
+        print(f"✅ Using providers: {providers}", file=sys.stderr)
+        
+        print(f"📦 Loading InsightFace model: {FACE_MODEL_NAME}", file=sys.stderr)
+        print("   (This may take 30-60 seconds on first run if models need to be downloaded)", file=sys.stderr)
         self.app = FaceAnalysis(name=FACE_MODEL_NAME, providers=providers)
+        print("✅ InsightFace model loaded successfully", file=sys.stderr)
+        
+        print(f"🔧 Preparing face analysis app (det_size={DETECTION_SIZE}, det_thresh={DETECTION_THRESHOLD})...", file=sys.stderr)
         self.app.prepare(
             ctx_id=0, det_size=DETECTION_SIZE, det_thresh=DETECTION_THRESHOLD,
         )
+        print("✅ Face analysis app prepared successfully", file=sys.stderr)
+        
+        print("📂 Loading face database from disk...", file=sys.stderr)
         self.face_database = self._load_face_database()
+        print(f"✅ Face database loaded with {len(self.face_database)} entries", file=sys.stderr)
+        print("✅ FaceManager initialization complete!", file=sys.stderr)
 
     def detect_faces(self, image: np.ndarray) -> List[Any]:
         """Detect faces in an image using InsightFace defaults.
@@ -115,6 +131,13 @@ class FaceManager:
         Returns:
             True if successfully added, False otherwise
         """
+        import sys
+        
+        # Check if user is already loaded in memory
+        if user_name in self.face_database:
+            print(f"   User '{user_name}' already loaded, skipping...", file=sys.stderr)
+            return True
+        
         user_folder = os.path.join(DATABASE_DIR, user_name)
         if not os.path.exists(user_folder):
             return False
@@ -161,16 +184,26 @@ class FaceManager:
         Returns:
             Number of users successfully loaded
         """
+        import sys
         if not os.path.exists(DATABASE_DIR):
+            print(f"⚠️  Database directory does not exist: {DATABASE_DIR}", file=sys.stderr)
             return 0
 
+        print(f"📂 Scanning database directory: {DATABASE_DIR}", file=sys.stderr)
+        user_folders = [f for f in os.listdir(DATABASE_DIR) if os.path.isdir(os.path.join(DATABASE_DIR, f))]
+        print(f"📊 Found {len(user_folders)} user folders", file=sys.stderr)
+        
         loaded_count = 0
-        for user_folder in os.listdir(DATABASE_DIR):
+        for idx, user_folder in enumerate(user_folders, 1):
             user_path = os.path.join(DATABASE_DIR, user_folder)
-            if os.path.isdir(user_path):
-                if self.add_user_from_database_folder(user_folder):
-                    loaded_count += 1
+            print(f"   [{idx}/{len(user_folders)}] Loading user: {user_folder}...", file=sys.stderr, end=' ')
+            if self.add_user_from_database_folder(user_folder):
+                loaded_count += 1
+                print("✅", file=sys.stderr)
+            else:
+                print("❌ (no valid faces found)", file=sys.stderr)
 
+        print(f"✅ Successfully loaded {loaded_count}/{len(user_folders)} users", file=sys.stderr)
         return loaded_count
 
     def get_user_list(self) -> List[str]:
