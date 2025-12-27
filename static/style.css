@@ -513,6 +513,24 @@ img {
     box-shadow: var(--shadow-lg);
 }
 
+.streaming-status {
+    margin-top: 10px;
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.streaming-indicator {
+    animation: pulse 1.5s infinite;
+}
+
+.info-text {
+    color: var(--text-secondary);
+}
+
+.error-text {
+    color: var(--danger-color);
+}
+
 #preview_container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

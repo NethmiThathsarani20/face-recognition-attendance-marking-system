@@ -190,7 +190,14 @@ def camera_test(camera_source):
 
 @app.route("/video_feed/<path:camera_source>")
 def video_feed(camera_source):
-    """Video streaming route with face detection and recognition."""
+    """Video streaming route with face detection and recognition.
+    
+    Args:
+        camera_source: Camera index (int) or IP camera URL (str)
+    
+    Returns:
+        MJPEG stream response with detected faces and labels
+    """
     # Convert camera_source to appropriate type
     if camera_source.isdigit():
         camera_source = int(camera_source)

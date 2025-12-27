@@ -435,7 +435,7 @@
             const cameraSource = getCameraSource();
             
             if (!cameraSource || cameraSource.trim() === '') {
-                document.getElementById('camera_result').innerHTML = '<p style="color: red;">Please specify a camera source</p>';
+                document.getElementById('camera_result').innerHTML = '<p class="error-text">Please specify a camera source</p>';
                 return;
             }
             
@@ -446,8 +446,8 @@
                     <img id="live_stream_img" src="/video_feed/${encodeURIComponent(cameraSource)}" 
                          class="live-stream-video"
                          onerror="handleStreamError()">
-                    <p style="margin-top: 10px; color: #10B981; font-weight: 600;">
-                        <i class="fas fa-circle" style="animation: pulse 1.5s infinite;"></i> Streaming with face detection...
+                    <p class="streaming-status">
+                        <i class="fas fa-circle streaming-indicator"></i> Streaming with face detection...
                     </p>
                 </div>
             `;
@@ -464,7 +464,7 @@
             }
             
             const resultDiv = document.getElementById('camera_result');
-            resultDiv.innerHTML = '<p style="color: #6B7280;"><i class="fas fa-info-circle"></i> Stream stopped</p>';
+            resultDiv.innerHTML = '<p class="info-text"><i class="fas fa-info-circle"></i> Stream stopped</p>';
             
             isStreamActive = false;
             document.querySelector('button[onclick="toggleLiveStream()"]').style.display = 'inline-block';
