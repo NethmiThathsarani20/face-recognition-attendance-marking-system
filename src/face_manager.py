@@ -32,6 +32,11 @@ except ImportError:
         SIMILARITY_THRESHOLD,
     )
 
+# Performance optimization: Limit images per user for faster initial loading
+# This balances accuracy (need multiple images per person) with speed
+# 5 images provides good face representation while keeping load time reasonable
+DEFAULT_MAX_IMAGES_PER_USER = 5
+
 
 class FaceManager:
     """Simple face manager using InsightFace defaults.
@@ -122,7 +127,7 @@ class FaceManager:
 
         return False
 
-    def add_user_from_database_folder(self, user_name: str, max_images: int = 5) -> bool:
+    def add_user_from_database_folder(self, user_name: str, max_images: int = DEFAULT_MAX_IMAGES_PER_USER) -> bool:
         """Add user from existing database folder structure.
 
         Args:
@@ -188,7 +193,7 @@ class FaceManager:
 
         return (best_match, float(best_score)) if best_match else None
 
-    def load_all_database_users(self, max_images_per_user: int = 5) -> int:
+    def load_all_database_users(self, max_images_per_user: int = DEFAULT_MAX_IMAGES_PER_USER) -> int:
         """Load all users from the database folder structure.
 
         Args:

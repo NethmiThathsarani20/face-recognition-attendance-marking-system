@@ -204,6 +204,9 @@
     <script>
         let autoModeInterval = null;
         const AUTO_MODE_INTERVAL = 3000;
+        // Timeout for system initialization (5 minutes = 300000ms)
+        // Allows time for first-time model download + user data processing
+        const INITIALIZATION_TIMEOUT_MS = 300000;
         let currentStartDate = '';
         let currentEndDate = '';
         let systemInitialized = false;
@@ -243,9 +246,8 @@
             }, 3000);
             
             // Create AbortController for timeout handling
-            // Timeout: 5 minutes to handle first-time model download + user loading
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
+            const timeoutId = setTimeout(() => controller.abort(), INITIALIZATION_TIMEOUT_MS);
             
             // Initialize system in background
             fetch('/initialize_system', {
