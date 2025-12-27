@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-12-26T20:50:05.271436",
+  "timestamp": "2025-12-27T07:02:18.437477",
   "num_classes": 67,
   "num_samples": 9648,
   "validation_split": 0.2,
   "embedding_dim": 128,
   "epochs": 30,
-  "train_accuracy": 0.9987043142318726,
-  "val_accuracy": 0.98860102891922,
+  "train_accuracy": 0.9975382089614868,
+  "val_accuracy": 0.9854922294616699,
   "classes": [
     "Abdullah_Gul",
     "Adithya",
