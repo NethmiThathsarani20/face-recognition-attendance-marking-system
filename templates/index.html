@@ -769,8 +769,11 @@
                 return;
             }
             
+            // Escape special characters in userName for safe display
+            const escapedUserName = userName.replace(/"/g, '\\"').replace(/'/g, "\\'");
+            
             // Confirm deletion
-            if (!confirm(`Are you sure you want to delete user "${userName}"?\n\nThis will permanently remove:\n• User's face data from the system\n• User's image folder from the database\n\nThis action cannot be undone.`)) {
+            if (!confirm("Are you sure you want to delete user \"" + escapedUserName + "\"?\n\nThis will permanently remove:\n• User's face data from the system\n• User's image folder from the database\n\nThis action cannot be undone.")) {
                 return;
             }
             

@@ -4,6 +4,7 @@ Simple implementation with default settings.
 
 import os
 import pickle
+import shutil
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -242,8 +243,6 @@ class FaceManager:
         Returns:
             True if user was deleted successfully, False otherwise
         """
-        import shutil
-        
         if user_name not in self.face_database:
             return False
         
