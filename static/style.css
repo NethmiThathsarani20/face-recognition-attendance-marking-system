@@ -531,6 +531,10 @@ img {
     color: var(--danger-color);
 }
 
+.small-text {
+    font-size: 0.9em;
+}
+
 #preview_container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

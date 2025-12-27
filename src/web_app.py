@@ -8,6 +8,7 @@ from datetime import datetime
 from io import BytesIO
 
 import cv2
+import numpy as np
 from flask import Flask, jsonify, redirect, render_template, request, url_for, send_file, make_response
 from werkzeug.utils import secure_filename
 
@@ -259,7 +260,6 @@ def generate_video_frames(camera_source):
 
 def create_error_frame(message):
     """Create an error frame with a message."""
-    import numpy as np
     # Create a simple error image
     error_img = np.zeros((480, 640, 3), dtype=np.uint8)
     error_img[:] = (40, 40, 40)  # Dark gray background
