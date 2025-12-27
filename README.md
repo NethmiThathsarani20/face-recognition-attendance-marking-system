@@ -9,6 +9,20 @@ This project delivers an IoT-enabled, edge-assisted attendance system that recog
 Keywords
 face recognition; attendance system; insightface; convolutional neural network; computer vision; esp32-cam
 
+## 📖 Documentation
+
+**For comprehensive project documentation, see [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)**
+
+This comprehensive guide includes:
+- **IoT Devices**: Detailed information about Raspberry Pi and ESP32-CAM, why we use them, and their processes
+- **System Architecture**: Complete edge + cloud architecture explanation
+- **Dataset Details**: Full dataset specifications (67 users, 9,648 samples, 240×240 pixels)
+- **Models & Algorithms**: In-depth coverage of all three models (Embedding Classifier, CNN, Custom Embedding)
+  - Features and performance comparison
+  - Why we use Embedding Classifier for production (99.74% accuracy)
+- **UI Components**: Detailed breakdown of all web interface components and workflows
+- **Complete Workflows**: Step-by-step processes for setup, daily operation, and maintenance
+
 ## 🚀 Features
 
 ### Core Recognition System
@@ -1104,10 +1118,12 @@ python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"
 - `.github/workflows/train.yml` - CI/CD pipeline
 
 ### Support and Documentation
+- **📖 Complete Project Documentation**: See `PROJECT_DOCUMENTATION.md` (comprehensive guide covering IoT devices, models, UI, dataset, and workflows)
 - **Full Setup Guide**: See `INSTRUCTIONS.md`
 - **Technical Details**: See `docs/TECHNICAL_OVERVIEW.md`
 - **Model Training**: See `docs/MODEL_TRAINING.md`
 - **Project Structure**: See `docs/STRUCTURE.md`
+- **ESP32-CAM Guides**: See `docs/ESP32_CAM_GUIDE.md` and related docs
 - **GitHub Issues**: https://github.com/NethmiThathsarani20/face-recognition-attendance-marking-system/issues
 
 ---
