@@ -4,6 +4,7 @@ Handles attendance marking for both camera and upload inputs.
 
 import json
 import os
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
@@ -384,8 +385,6 @@ class AttendanceSystem:
         Returns:
             VideoCapture object or None if failed
         """
-        import time
-        
         for attempt in range(max_retries):
             try:
                 if attempt > 0:
