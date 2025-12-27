@@ -47,7 +47,7 @@
         
         <!-- Stats Cards -->
         <div class="stats-grid">
-            <div class="stat-card" onclick="showRegisteredUsers()" style="cursor: pointer;">
+            <div class="stat-card" id="registered_users_card" style="cursor: pointer;">
                 <h3><i class="fas fa-users"></i> <span id="users_count">...</span></h3>
                 <p>Registered Users</p>
             </div>
@@ -62,7 +62,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2><i class="fas fa-users"></i> Registered Users</h2>
-                    <span class="close" onclick="closeUsersModal()">&times;</span>
+                    <span class="close" id="close_modal_btn">&times;</span>
                 </div>
                 <div class="modal-body">
                     <div id="users_list">
@@ -229,6 +229,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             setTodayDate();
             initializeSystem();
+            
+            // Setup event listeners for registered users modal
+            const registeredUsersCard = document.getElementById('registered_users_card');
+            if (registeredUsersCard) {
+                registeredUsersCard.addEventListener('click', showRegisteredUsers);
+            }
+            
+            const closeBtn = document.getElementById('close_modal_btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeUsersModal);
+            }
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('users_modal');
+                if (event.target === modal) {
+                    closeUsersModal();
+                }
+            });
         });
 
         function initializeSystem() {
@@ -703,16 +722,7 @@
         function closeUsersModal() {
             document.getElementById('users_modal').style.display = 'none';
         }
-        
-        // Close modal when clicking outside of it - use addEventListener to avoid conflicts
-        document.addEventListener('DOMContentLoaded', () => {
-            window.addEventListener('click', function(event) {
-                const modal = document.getElementById('users_modal');
-                if (event.target === modal) {
-                    closeUsersModal();
-                }
-            });
-        });
+    
     </script>
 </body>
 </html>
