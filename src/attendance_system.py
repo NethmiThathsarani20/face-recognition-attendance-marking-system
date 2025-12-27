@@ -669,10 +669,10 @@ class AttendanceSystem:
                 best_score = 0
                 
                 for user_name, stored_embedding in self.face_manager.face_database.items():
-                    # Calculate cosine similarity
+                    # Calculate cosine similarity (only if threshold can be met)
                     similarity = np.dot(face_embedding, stored_embedding)
                     
-                    if similarity > best_score and similarity > SIMILARITY_THRESHOLD:
+                    if similarity > SIMILARITY_THRESHOLD and similarity > best_score:
                         best_score = similarity
                         best_match = user_name
                 

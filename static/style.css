@@ -505,6 +505,14 @@ img {
     box-shadow: var(--shadow-md);
 }
 
+.live-stream-video {
+    max-width: 100%;
+    border: 2px solid var(--secondary-color);
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: var(--shadow-lg);
+}
+
 #preview_container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

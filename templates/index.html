@@ -444,7 +444,7 @@
                 <div class="success">
                     <h4><i class="fas fa-video"></i> Live Stream with Face Detection</h4>
                     <img id="live_stream_img" src="/video_feed/${encodeURIComponent(cameraSource)}" 
-                         style="max-width: 100%; border: 2px solid #10B981; border-radius: 8px; margin-top: 10px;"
+                         class="live-stream-video"
                          onerror="handleStreamError()">
                     <p style="margin-top: 10px; color: #10B981; font-weight: 600;">
                         <i class="fas fa-circle" style="animation: pulse 1.5s infinite;"></i> Streaming with face detection...
@@ -460,7 +460,7 @@
         function stopLiveStream() {
             const streamImg = document.getElementById('live_stream_img');
             if (streamImg) {
-                streamImg.src = '';
+                streamImg.removeAttribute('src');
             }
             
             const resultDiv = document.getElementById('camera_result');

@@ -209,6 +209,12 @@ def generate_video_frames(camera_source):
         cap = cv2.VideoCapture(camera_source)
         if not cap or not cap.isOpened():
             print(f"❌ Failed to open camera: {camera_source}")
+            # Return error frame instead of None
+            error_frame = create_error_frame("Camera not available")
+            ret, buffer = cv2.imencode('.jpg', error_frame)
+            if ret:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
             return
         
         # Set buffer size for better performance
@@ -233,11 +239,32 @@ def generate_video_frames(camera_source):
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
     
+    except GeneratorExit:
+        # Client disconnected
+        print("Client disconnected from video stream")
     except Exception as e:
         print(f"❌ Video streaming error: {e}")
     finally:
         if cap is not None:
             cap.release()
+            print("📷 Camera released")
+
+
+def create_error_frame(message):
+    """Create an error frame with a message."""
+    import numpy as np
+    # Create a simple error image
+    error_img = np.zeros((480, 640, 3), dtype=np.uint8)
+    error_img[:] = (40, 40, 40)  # Dark gray background
+    
+    # Add error message
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    text_size = cv2.getTextSize(message, font, 1, 2)[0]
+    text_x = (640 - text_size[0]) // 2
+    text_y = (480 + text_size[1]) // 2
+    
+    cv2.putText(error_img, message, (text_x, text_y), font, 1, (0, 0, 255), 2)
+    return error_img
 
 
 # CNN training page removed - using only custom embedding model for Raspberry Pi optimization
