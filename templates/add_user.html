@@ -71,6 +71,17 @@
             <div id="preview_container"></div>
         </div>
         
+        <!-- Registered Users List -->
+        <div class="form-section">
+            <h2><i class="fas fa-users"></i> Registered Users in Database</h2>
+            <div id="users_list">
+                <div style="text-align: center; padding: 20px;">
+                    <div class="spinner"></div>
+                    <p>Loading registered users...</p>
+                </div>
+            </div>
+        </div>
+        
         <!-- Result Display -->
         <div id="result_display" class="result-section" style="display: none;">
             <div id="result_content"></div>
@@ -91,6 +102,55 @@
     </div>
     
     <script>
+        // Load registered users on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRegisteredUsers();
+        });
+        
+        // Load registered users from database
+        function loadRegisteredUsers() {
+            fetch('/get_users')
+                .then(response => response.json())
+                .then(users => {
+                    const usersListDiv = document.getElementById('users_list');
+                    
+                    if (users && users.length > 0) {
+                        let usersHTML = `
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        `;
+                        
+                        users.forEach((user, index) => {
+                            usersHTML += `
+                                <div style="background: #f0f4f8; padding: 15px; border-radius: 10px; text-align: center; border-left: 4px solid var(--primary-color); box-shadow: var(--shadow-sm);">
+                                    <i class="fas fa-user-circle" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 8px;"></i>
+                                    <p style="font-weight: 600; color: var(--text-primary); margin: 0;">${user}</p>
+                                    <small style="color: var(--text-secondary);">User ${index + 1}</small>
+                                </div>
+                            `;
+                        });
+                        
+                        usersHTML += `</div>`;
+                        usersHTML += `<p style="margin-top: 20px; text-align: center; color: var(--text-secondary);"><strong>Total Users:</strong> ${users.length}</p>`;
+                        usersListDiv.innerHTML = usersHTML;
+                    } else {
+                        usersListDiv.innerHTML = `
+                            <p style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                                No users registered yet. Add your first user above!
+                            </p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading users:', error);
+                    document.getElementById('users_list').innerHTML = `
+                        <p style="text-align: center; padding: 20px; color: var(--danger-color);">
+                            <i class="fas fa-exclamation-triangle"></i> Error loading users: ${error.message}
+                        </p>
+                    `;
+                });
+        }
+        
         // Preview selected images
         document.getElementById('user_images').addEventListener('change', function(e) {
             const files = e.target.files;
@@ -171,6 +231,13 @@
                     displayResult(data);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Add User';
+                    
+                    // Reload users list if successful
+                    if (data.success && data.message !== 'Processing images... Please wait.') {
+                        setTimeout(() => {
+                            loadRegisteredUsers();
+                        }, 500);
+                    }
                 }
             })
             .catch(error => {
