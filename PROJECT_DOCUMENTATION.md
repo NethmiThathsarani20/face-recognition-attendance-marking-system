@@ -497,7 +497,7 @@ database/
 #### Method 4: Direct File Copy
 1. Copy images to `database/username/` on Raspberry Pi
 2. SSH or direct SD card access
-3. Run sync script: `./scripts/edge_sync.sh`
+3. Run sync script: `./scripts/edge_sync.sh "Add new user images"`
 4. Triggers cloud training automatically
 
 ### 4.4 Data Preprocessing
