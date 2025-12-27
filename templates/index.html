@@ -37,7 +37,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Face Recognition Attendance System</h1>
+        <h1>Face Recognition Attendance System</h1>
         
         <!-- Navigation -->
         <nav>
@@ -47,13 +47,28 @@
         
         <!-- Stats Cards -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" id="registered_users_card" style="cursor: pointer;">
                 <h3><i class="fas fa-users"></i> <span id="users_count">...</span></h3>
                 <p>Registered Users</p>
             </div>
             <div class="stat-card" style="border-top-color: var(--secondary-color);">
                 <h3 style="color: var(--secondary-color);"><i class="fas fa-check-circle"></i> <span id="attendance_count">...</span></h3>
                 <p>Today's Attendance</p>
+            </div>
+        </div>
+        
+        <!-- Registered Users Modal -->
+        <div id="users_modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-users"></i> Registered Users</h2>
+                    <span class="close" id="close_modal_btn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="users_list">
+                        <p style="text-align: center; color: #6B7280;"><i class="fas fa-spinner fa-spin"></i> Loading users...</p>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -214,6 +229,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             setTodayDate();
             initializeSystem();
+            
+            // Setup event listeners for registered users modal
+            const registeredUsersCard = document.getElementById('registered_users_card');
+            if (registeredUsersCard) {
+                registeredUsersCard.addEventListener('click', showRegisteredUsers);
+            }
+            
+            const closeBtn = document.getElementById('close_modal_btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeUsersModal);
+            }
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('users_modal');
+                if (event.target === modal) {
+                    closeUsersModal();
+                }
+            });
         });
 
         function initializeSystem() {
@@ -608,6 +642,108 @@
             
             window.location.href = url;
         }
+        
+        function showRegisteredUsers() {
+            const modal = document.getElementById('users_modal');
+            const usersList = document.getElementById('users_list');
+            
+            // Show modal
+            modal.style.display = 'block';
+            
+            // Fetch users
+            fetch('/get_users')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(users => {
+                    if (users.length > 0) {
+                        // Clear existing content
+                        usersList.replaceChildren();
+                        
+                        // Create users grid
+                        const usersGrid = document.createElement('div');
+                        usersGrid.className = 'users-grid';
+                        
+                        users.forEach((user, index) => {
+                            // Create user card
+                            const userCard = document.createElement('div');
+                            userCard.className = 'user-card';
+                            
+                            // Create avatar
+                            const avatar = document.createElement('div');
+                            avatar.className = 'user-avatar';
+                            const avatarIcon = document.createElement('i');
+                            avatarIcon.className = 'fas fa-user';
+                            avatar.appendChild(avatarIcon);
+                            
+                            // Create user info
+                            const userInfo = document.createElement('div');
+                            userInfo.className = 'user-info';
+                            
+                            const userName = document.createElement('h4');
+                            userName.textContent = user; // Use textContent to prevent XSS
+                            
+                            const userNumber = document.createElement('p');
+                            userNumber.textContent = `User #${index + 1}`;
+                            
+                            // Assemble the card
+                            userInfo.appendChild(userName);
+                            userInfo.appendChild(userNumber);
+                            userCard.appendChild(avatar);
+                            userCard.appendChild(userInfo);
+                            usersGrid.appendChild(userCard);
+                        });
+                        
+                        usersList.appendChild(usersGrid);
+                    } else {
+                        // Clear existing content
+                        usersList.replaceChildren();
+                        
+                        // Create "no users" message
+                        const noUsersMsg = document.createElement('p');
+                        noUsersMsg.style.textAlign = 'center';
+                        noUsersMsg.style.padding = '40px';
+                        noUsersMsg.style.color = '#6B7280';
+                        
+                        const noUsersIcon = document.createElement('i');
+                        noUsersIcon.className = 'fas fa-user-slash';
+                        noUsersIcon.style.fontSize = '3rem';
+                        noUsersIcon.style.display = 'block';
+                        noUsersIcon.style.marginBottom = '15px';
+                        noUsersIcon.style.opacity = '0.3';
+                        
+                        noUsersMsg.appendChild(noUsersIcon);
+                        noUsersMsg.appendChild(document.createTextNode('No registered users yet.'));
+                        
+                        usersList.appendChild(noUsersMsg);
+                    }
+                })
+                .catch(error => {
+                    // Clear existing content
+                    usersList.replaceChildren();
+                    
+                    // Create error message using textContent to prevent XSS
+                    const errorContainer = document.createElement('p');
+                    errorContainer.style.textAlign = 'center';
+                    errorContainer.style.color = '#EF4444';
+                    
+                    const errorIcon = document.createElement('i');
+                    errorIcon.className = 'fas fa-exclamation-triangle';
+                    
+                    errorContainer.appendChild(errorIcon);
+                    errorContainer.appendChild(document.createTextNode(' Error loading users'));
+                    
+                    usersList.appendChild(errorContainer);
+                });
+        }
+        
+        function closeUsersModal() {
+            document.getElementById('users_modal').style.display = 'none';
+        }
+    
     </script>
 </body>
 </html>
