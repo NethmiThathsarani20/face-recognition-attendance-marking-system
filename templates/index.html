@@ -636,22 +636,42 @@
                 .then(response => response.json())
                 .then(users => {
                     if (users.length > 0) {
-                        let html = '<div class="users-grid">';
+                        // Clear existing content
+                        usersList.innerHTML = '';
+                        
+                        // Create users grid
+                        const usersGrid = document.createElement('div');
+                        usersGrid.className = 'users-grid';
+                        
                         users.forEach((user, index) => {
-                            html += `
-                                <div class="user-card">
-                                    <div class="user-avatar">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div class="user-info">
-                                        <h4>${user}</h4>
-                                        <p>User #${index + 1}</p>
-                                    </div>
-                                </div>
-                            `;
+                            // Create user card
+                            const userCard = document.createElement('div');
+                            userCard.className = 'user-card';
+                            
+                            // Create avatar
+                            const avatar = document.createElement('div');
+                            avatar.className = 'user-avatar';
+                            avatar.innerHTML = '<i class="fas fa-user"></i>';
+                            
+                            // Create user info
+                            const userInfo = document.createElement('div');
+                            userInfo.className = 'user-info';
+                            
+                            const userName = document.createElement('h4');
+                            userName.textContent = user; // Use textContent to prevent XSS
+                            
+                            const userNumber = document.createElement('p');
+                            userNumber.textContent = `User #${index + 1}`;
+                            
+                            // Assemble the card
+                            userInfo.appendChild(userName);
+                            userInfo.appendChild(userNumber);
+                            userCard.appendChild(avatar);
+                            userCard.appendChild(userInfo);
+                            usersGrid.appendChild(userCard);
                         });
-                        html += '</div>';
-                        usersList.innerHTML = html;
+                        
+                        usersList.appendChild(usersGrid);
                     } else {
                         usersList.innerHTML = `
                             <p style="text-align: center; padding: 40px; color: #6B7280;">
@@ -662,11 +682,21 @@
                     }
                 })
                 .catch(error => {
-                    usersList.innerHTML = `
-                        <p style="text-align: center; color: #EF4444;">
-                            <i class="fas fa-exclamation-triangle"></i> Error loading users: ${error}
-                        </p>
-                    `;
+                    // Clear existing content
+                    usersList.innerHTML = '';
+                    
+                    // Create error message using textContent to prevent XSS
+                    const errorContainer = document.createElement('p');
+                    errorContainer.style.textAlign = 'center';
+                    errorContainer.style.color = '#EF4444';
+                    
+                    const errorIcon = document.createElement('i');
+                    errorIcon.className = 'fas fa-exclamation-triangle';
+                    
+                    errorContainer.appendChild(errorIcon);
+                    errorContainer.appendChild(document.createTextNode(' Error loading users'));
+                    
+                    usersList.appendChild(errorContainer);
                 });
         }
         
@@ -674,13 +704,15 @@
             document.getElementById('users_modal').style.display = 'none';
         }
         
-        // Close modal when clicking outside of it
-        window.onclick = function(event) {
-            const modal = document.getElementById('users_modal');
-            if (event.target === modal) {
-                closeUsersModal();
-            }
-        }
+        // Close modal when clicking outside of it - use addEventListener to avoid conflicts
+        document.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('users_modal');
+                if (event.target === modal) {
+                    closeUsersModal();
+                }
+            });
+        });
     </script>
 </body>
 </html>
