@@ -652,7 +652,12 @@
             
             // Fetch users
             fetch('/get_users')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(users => {
                     if (users.length > 0) {
                         // Clear existing content
