@@ -98,18 +98,30 @@ class AttendanceSystem:
     def face_manager(self) -> FaceManager:
         """Lazy load face manager on first access."""
         if self._face_manager is None:
-            print("🔄 Initializing face recognition models... (this may take 10-15 seconds on first load)")
+            import sys
+            print("🔄 Initializing face recognition models... (this may take 10-15 seconds on first load)", file=sys.stderr)
             self._face_manager = FaceManager()
-            self._face_manager.clear_embeddings()
-            print("✅ Face recognition models loaded successfully")
+            print("✅ Face recognition models loaded successfully", file=sys.stderr)
         return self._face_manager
 
     def _load_existing_users(self) -> None:
         """Load all existing users from database folder."""
+        import sys
         if self._users_loaded:
             return
-        loaded_count = self.face_manager.load_all_database_users()
-        print(f"Loaded {loaded_count} users from database")
+        
+        # Check if we already have embeddings loaded from the pickle file
+        existing_users = len(self.face_manager.face_database)
+        print(f"📊 Found {existing_users} users already in memory from embeddings file", file=sys.stderr)
+        
+        # Only reload from database if no embeddings are loaded
+        if existing_users == 0:
+            print("📂 No cached embeddings found, loading users from database folder...", file=sys.stderr)
+            loaded_count = self.face_manager.load_all_database_users()
+            print(f"✅ Loaded {loaded_count} users from database", file=sys.stderr)
+        else:
+            print(f"✅ Using {existing_users} cached user embeddings (fast load!)", file=sys.stderr)
+        
         self._users_loaded = True
 
     def mark_attendance(

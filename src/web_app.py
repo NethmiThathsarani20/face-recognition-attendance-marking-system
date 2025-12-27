@@ -209,9 +209,23 @@ def model_status():
 def initialize_system():
     """Initialize the face recognition system in the background."""
     try:
+        import sys
+        print("=" * 80, file=sys.stderr)
+        print("🚀 Starting system initialization...", file=sys.stderr)
+        print("=" * 80, file=sys.stderr)
+        
         # This will trigger lazy loading of face manager
+        print("📋 Step 1/3: Loading user list...", file=sys.stderr)
         users = attendance_system.get_user_list()
+        print(f"✅ Step 1/3: Found {len(users)} users", file=sys.stderr)
+        
+        print("📅 Step 2/3: Loading today's attendance...", file=sys.stderr)
         today_attendance = attendance_system.get_today_attendance()
+        print(f"✅ Step 2/3: Found {len(today_attendance)} attendance records", file=sys.stderr)
+        
+        print("✅ Step 3/3: System initialization complete!", file=sys.stderr)
+        print("=" * 80, file=sys.stderr)
+        
         return jsonify({
             "success": True,
             "users_count": len(users),
@@ -220,7 +234,22 @@ def initialize_system():
             "attendance": today_attendance
         })
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+        import traceback
+        import sys
+        error_msg = str(e)
+        error_trace = traceback.format_exc()
+        
+        print("=" * 80, file=sys.stderr)
+        print("❌ INITIALIZATION ERROR:", file=sys.stderr)
+        print(error_msg, file=sys.stderr)
+        print("-" * 80, file=sys.stderr)
+        print(error_trace, file=sys.stderr)
+        print("=" * 80, file=sys.stderr)
+        
+        return jsonify({
+            "success": False, 
+            "error": f"Failed to initialize system: {error_msg}"
+        })
 
 
 
