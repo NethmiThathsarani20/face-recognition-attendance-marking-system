@@ -670,7 +670,9 @@
                             // Create avatar
                             const avatar = document.createElement('div');
                             avatar.className = 'user-avatar';
-                            avatar.innerHTML = '<i class="fas fa-user"></i>';
+                            const avatarIcon = document.createElement('i');
+                            avatarIcon.className = 'fas fa-user';
+                            avatar.appendChild(avatarIcon);
                             
                             // Create user info
                             const userInfo = document.createElement('div');
@@ -692,12 +694,26 @@
                         
                         usersList.appendChild(usersGrid);
                     } else {
-                        usersList.innerHTML = `
-                            <p style="text-align: center; padding: 40px; color: #6B7280;">
-                                <i class="fas fa-user-slash" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
-                                No registered users yet.
-                            </p>
-                        `;
+                        // Clear existing content
+                        usersList.innerHTML = '';
+                        
+                        // Create "no users" message
+                        const noUsersMsg = document.createElement('p');
+                        noUsersMsg.style.textAlign = 'center';
+                        noUsersMsg.style.padding = '40px';
+                        noUsersMsg.style.color = '#6B7280';
+                        
+                        const noUsersIcon = document.createElement('i');
+                        noUsersIcon.className = 'fas fa-user-slash';
+                        noUsersIcon.style.fontSize = '3rem';
+                        noUsersIcon.style.display = 'block';
+                        noUsersIcon.style.marginBottom = '15px';
+                        noUsersIcon.style.opacity = '0.3';
+                        
+                        noUsersMsg.appendChild(noUsersIcon);
+                        noUsersMsg.appendChild(document.createTextNode('No registered users yet.'));
+                        
+                        usersList.appendChild(noUsersMsg);
                     }
                 })
                 .catch(error => {
