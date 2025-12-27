@@ -124,10 +124,22 @@ def test_video_capture(camera_url):
     print_header("Step 3: Test Video Capture")
     
     print_info(f"Opening video stream: {camera_url}")
-    cap = cv2.VideoCapture(camera_url)
+    
+    # Use CAP_FFMPEG backend with timeout settings for network streams
+    cap = cv2.VideoCapture(camera_url, cv2.CAP_FFMPEG)
+    
+    # Set timeout properties (in milliseconds)
+    cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)  # 5 second open timeout
+    cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)  # 5 second read timeout
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer for lower latency
     
     if not cap.isOpened():
         print_error("Failed to open video stream")
+        print_info("💡 Troubleshooting tips:")
+        print_info("   - Verify camera URL is correct and accessible")
+        print_info("   - Check that camera is streaming (not just taking photos)")
+        print_info("   - Try opening the URL in a web browser first")
+        print_info("   - Ensure camera is on the same network")
         return False
     
     print_success("Video stream opened successfully")
@@ -172,7 +184,14 @@ def test_face_detection(camera_url):
         return False
     
     print_info(f"Opening video stream: {camera_url}")
-    cap = cv2.VideoCapture(camera_url)
+    
+    # Use CAP_FFMPEG backend with timeout settings for network streams
+    cap = cv2.VideoCapture(camera_url, cv2.CAP_FFMPEG)
+    
+    # Set timeout properties (in milliseconds)
+    cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)  # 5 second open timeout
+    cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)  # 5 second read timeout
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer for lower latency
     
     if not cap.isOpened():
         print_error("Failed to open video stream")

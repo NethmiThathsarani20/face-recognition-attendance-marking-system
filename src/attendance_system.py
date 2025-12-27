@@ -4,6 +4,7 @@ Handles attendance marking for both camera and upload inputs.
 
 import json
 import os
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
@@ -372,6 +373,51 @@ class AttendanceSystem:
             False, f"Failed to add user '{user_name}'. No valid faces found.",
         )
 
+    def _create_video_capture(
+        self, camera_source: Union[int, str], max_retries: int = 3
+    ) -> Optional[cv2.VideoCapture]:
+        """Create VideoCapture with proper configuration for network streams.
+        
+        Args:
+            camera_source: Camera index (int) or URL (str)
+            max_retries: Maximum number of connection attempts
+            
+        Returns:
+            VideoCapture object or None if failed
+        """
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    print(f"🔄 Retry attempt {attempt + 1}/{max_retries}...")
+                    time.sleep(1)  # Brief delay between retries
+                
+                # For IP cameras (string URLs), use CAP_FFMPEG backend
+                if isinstance(camera_source, str):
+                    cap = cv2.VideoCapture(camera_source, cv2.CAP_FFMPEG)
+                    
+                    # Set timeout properties for network streams (in milliseconds)
+                    cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)  # 5 second open timeout
+                    cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)  # 5 second read timeout
+                else:
+                    # For local cameras, use default backend
+                    cap = cv2.VideoCapture(camera_source)
+                
+                # Set buffer size for better performance
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                
+                # Check if opened successfully
+                if cap.isOpened():
+                    return cap
+                else:
+                    cap.release()
+                    
+            except Exception as e:
+                print(f"⚠️  Connection attempt {attempt + 1} failed: {e}")
+                if 'cap' in locals():
+                    cap.release()
+        
+        return None
+
     def capture_from_camera(
         self, camera_source: Union[int, str] = 0,
     ) -> Optional[np.ndarray]:
@@ -387,13 +433,10 @@ class AttendanceSystem:
         try:
             print(f"📷 Attempting to connect to camera: {camera_source}")
 
-            # Create VideoCapture object
-            cap = cv2.VideoCapture(camera_source)
+            # Create VideoCapture object with retry logic
+            cap = self._create_video_capture(camera_source, max_retries=3)
 
-            # Set buffer size for better performance
-            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-            if cap and cap.isOpened():
+            if cap is not None:
                 print("✅ Camera connection established")
 
                 # Try to read a frame
@@ -422,28 +465,36 @@ class AttendanceSystem:
         """Print troubleshooting information for IP cameras."""
         print(f"   🔍 IP Camera Troubleshooting for: {camera_url}")
         print("   Common issues and solutions:")
-        print("   1. Authentication Required (401 Error):")
+        print("   1. Connection Timeout (Error -138):")
+        print("      - Camera may be offline or unreachable")
+        print("      - Check power supply to ESP32-CAM")
+        print("      - Verify camera is connected to WiFi network")
+        print("      - Try increasing timeout in code if network is slow")
+        print("   2. Authentication Required (401 Error):")
         print("      - Add credentials to URL: http://username:password@IP:PORT/video")
         print("      - Example: http://admin:password@192.168.1.4:8554/video")
-        print("   2. Wrong URL Format:")
+        print("   3. Wrong URL Format:")
         print("      - Try different endpoints:")
-        print("        • /video (common for IP webcams)")
         print("        • /stream (common for ESP32-CAM)")
+        print("        • /video (common for IP webcams)")
         print("        • /mjpeg (MJPEG streams)")
-        print("        • /shot.jpg (single frame)")
-        print("   3. Network Issues:")
+        print("        • /cam-hi.jpg (single frame for some ESP32-CAM)")
+        print("   4. Network Issues:")
         print(
             f"      - Check if camera is accessible: ping {camera_url.split('://')[1].split(':')[0]}",
         )
         print("      - Verify firewall settings")
         print("      - Check if camera is on the same network")
-        print("   4. Camera Settings:")
+        print("      - Try accessing from same WiFi network as ESP32-CAM")
+        print("   5. Camera Settings:")
         print("      - Set camera to MJPEG mode (not H.264)")
-        print("      - Check camera resolution settings")
+        print("      - Check camera resolution settings (try lower resolution)")
         print("      - Verify camera is streaming (not just taking photos)")
-        print("   5. Test in Browser:")
+        print("      - For ESP32-CAM: Ensure stream server is running")
+        print("   6. Test in Browser:")
         print(f"      - Try opening {camera_url} in a web browser")
         print("      - Should show video stream or ask for credentials")
+        print("      - If browser works but app doesn't, check firewall rules")
 
     def switch_to_cnn_model(self):
         """Switch to using CNN model for recognition."""
@@ -587,9 +638,11 @@ class AttendanceSystem:
             delay: Delay between captures in seconds
         """
         print(f"📷 Starting automatic recognition with camera: {camera_source}")
-        cap = cv2.VideoCapture(camera_source)
+        
+        # Use improved video capture with retry logic and timeouts
+        cap = self._create_video_capture(camera_source, max_retries=3)
 
-        if not cap.isOpened():
+        if cap is None or not cap.isOpened():
             print("❌ Failed to open camera connection")
             if isinstance(camera_source, str):
                 self._print_ip_camera_troubleshooting(camera_source)
