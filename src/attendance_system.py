@@ -466,28 +466,36 @@ class AttendanceSystem:
         """Print troubleshooting information for IP cameras."""
         print(f"   🔍 IP Camera Troubleshooting for: {camera_url}")
         print("   Common issues and solutions:")
-        print("   1. Authentication Required (401 Error):")
+        print("   1. Connection Timeout (Error -138):")
+        print("      - Camera may be offline or unreachable")
+        print("      - Check power supply to ESP32-CAM")
+        print("      - Verify camera is connected to WiFi network")
+        print("      - Try increasing timeout in code if network is slow")
+        print("   2. Authentication Required (401 Error):")
         print("      - Add credentials to URL: http://username:password@IP:PORT/video")
         print("      - Example: http://admin:password@192.168.1.4:8554/video")
-        print("   2. Wrong URL Format:")
+        print("   3. Wrong URL Format:")
         print("      - Try different endpoints:")
-        print("        • /video (common for IP webcams)")
         print("        • /stream (common for ESP32-CAM)")
+        print("        • /video (common for IP webcams)")
         print("        • /mjpeg (MJPEG streams)")
-        print("        • /shot.jpg (single frame)")
-        print("   3. Network Issues:")
+        print("        • /cam-hi.jpg (single frame for some ESP32-CAM)")
+        print("   4. Network Issues:")
         print(
             f"      - Check if camera is accessible: ping {camera_url.split('://')[1].split(':')[0]}",
         )
         print("      - Verify firewall settings")
         print("      - Check if camera is on the same network")
-        print("   4. Camera Settings:")
+        print("      - Try accessing from same WiFi network as ESP32-CAM")
+        print("   5. Camera Settings:")
         print("      - Set camera to MJPEG mode (not H.264)")
-        print("      - Check camera resolution settings")
+        print("      - Check camera resolution settings (try lower resolution)")
         print("      - Verify camera is streaming (not just taking photos)")
-        print("   5. Test in Browser:")
+        print("      - For ESP32-CAM: Ensure stream server is running")
+        print("   6. Test in Browser:")
         print(f"      - Try opening {camera_url} in a web browser")
         print("      - Should show video stream or ask for credentials")
+        print("      - If browser works but app doesn't, check firewall rules")
 
     def switch_to_cnn_model(self):
         """Switch to using CNN model for recognition."""
@@ -631,9 +639,11 @@ class AttendanceSystem:
             delay: Delay between captures in seconds
         """
         print(f"📷 Starting automatic recognition with camera: {camera_source}")
-        cap = cv2.VideoCapture(camera_source)
+        
+        # Use improved video capture with retry logic and timeouts
+        cap = self._create_video_capture(camera_source, max_retries=3)
 
-        if not cap.isOpened():
+        if cap is None or not cap.isOpened():
             print("❌ Failed to open camera connection")
             if isinstance(camera_source, str):
                 self._print_ip_camera_troubleshooting(camera_source)
