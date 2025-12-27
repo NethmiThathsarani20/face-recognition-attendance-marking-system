@@ -45,6 +45,41 @@ Before installing, ensure you have:
 - **Storage**: 2GB free space
 - **Camera**: USB webcam, IP camera, or ESP32-CAM
 
+## 🎥 ESP32-CAM Testing & Verification (NEW!)
+
+**Quick Start for ESP32-CAM Users:**
+
+We provide comprehensive tools to test and verify ESP32-CAM functionality:
+
+```bash
+# 1. Find your ESP32-CAM IP address
+python ip.py <ESP32_MAC_ADDRESS>
+
+# 2. Run automated tests (connectivity, video, detection, attendance)
+python test_esp32_cam.py --url http://<ESP32_IP>:81/stream --all
+
+# 3. View live stream with face detection
+python demo_esp32_live.py --url http://<ESP32_IP>:81/stream
+```
+
+**Documentation:**
+- 📖 [ESP32-CAM Complete Guide](docs/ESP32_CAM_GUIDE.md) - Full setup and troubleshooting
+- 🚀 [Quick Start Guide](docs/ESP32_QUICK_START.md) - Fast testing workflow
+- 🖥️ [UI Integration Guide](docs/ESP32_UI_GUIDE.md) - Visual guide for web interface
+- ✅ [Verification Checklist](docs/ESP32_VERIFICATION_CHECKLIST.md) - Testing checklist
+- 📋 [Implementation Summary](docs/ESP32_IMPLEMENTATION_SUMMARY.md) - Overview of tools
+
+**What Gets Tested:**
+- ✅ Network connectivity and stream availability
+- ✅ Video capture quality and frame rate
+- ✅ Face detection with ESP32 stream
+- ✅ Face recognition accuracy
+- ✅ Attendance marking functionality
+- ✅ UI live stream integration
+- ✅ Automatic recognition mode
+
+**See the guides above for complete ESP32-CAM setup and testing instructions.**
+
 ## 📦 Installation
 
 ### Quick Install (Recommended)
