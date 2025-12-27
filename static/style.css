@@ -922,6 +922,7 @@ img {
     gap: 15px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 2px solid var(--border-color);
+    position: relative;
 }
 
 .user-card:hover {
@@ -943,6 +944,10 @@ img {
     flex-shrink: 0;
 }
 
+.user-info {
+    flex: 1;
+}
+
 .user-info h4 {
     margin: 0 0 5px 0;
     color: var(--text-primary);
@@ -954,6 +959,33 @@ img {
     margin: 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
+}
+
+.delete-user-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.delete-user-btn:hover {
+    background: #DC2626;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.delete-user-btn:active {
+    transform: scale(0.98);
 }
 
 @media (max-width: 768px) {

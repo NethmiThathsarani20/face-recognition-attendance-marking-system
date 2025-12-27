@@ -357,6 +357,22 @@ class AttendanceSystem:
         self._load_existing_users()
         return self.face_manager.get_user_list()
 
+    def delete_user(self, user_name: str) -> Dict[str, Any]:
+        """Delete a user from the system.
+
+        Args:
+            user_name: Name of the user to delete
+
+        Returns:
+            Result dictionary with success status and message
+        """
+        # Lazy load users first
+        self._load_existing_users()
+        
+        if self.face_manager.delete_user(user_name):
+            return self._create_result(True, f"User '{user_name}' deleted successfully")
+        return self._create_result(False, f"User '{user_name}' not found")
+
     def add_new_user(self, user_name: str, image_files: List[str]) -> Dict[str, Any]:
         """Add a new user to the system.
 
