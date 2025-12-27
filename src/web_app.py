@@ -214,7 +214,17 @@ def generate_video_frames(camera_source):
     """Generate video frames with face detection and bounding boxes."""
     cap = None
     try:
-        cap = cv2.VideoCapture(camera_source)
+        # For IP cameras (string URLs), use CAP_FFMPEG backend with timeout settings
+        if isinstance(camera_source, str):
+            cap = cv2.VideoCapture(camera_source, cv2.CAP_FFMPEG)
+            
+            # Set timeout properties for network streams (in milliseconds)
+            cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)  # 5 second open timeout
+            cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)  # 5 second read timeout
+        else:
+            # For local cameras, use default backend
+            cap = cv2.VideoCapture(camera_source)
+        
         if not cap or not cap.isOpened():
             print(f"❌ Failed to open camera: {camera_source}")
             # Return error frame instead of None

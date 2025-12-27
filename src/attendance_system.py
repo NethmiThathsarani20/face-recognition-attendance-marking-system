@@ -372,6 +372,53 @@ class AttendanceSystem:
             False, f"Failed to add user '{user_name}'. No valid faces found.",
         )
 
+    def _create_video_capture(
+        self, camera_source: Union[int, str], max_retries: int = 3
+    ) -> Optional[cv2.VideoCapture]:
+        """Create VideoCapture with proper configuration for network streams.
+        
+        Args:
+            camera_source: Camera index (int) or URL (str)
+            max_retries: Maximum number of connection attempts
+            
+        Returns:
+            VideoCapture object or None if failed
+        """
+        import time
+        
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    print(f"🔄 Retry attempt {attempt + 1}/{max_retries}...")
+                    time.sleep(1)  # Brief delay between retries
+                
+                # For IP cameras (string URLs), use CAP_FFMPEG backend
+                if isinstance(camera_source, str):
+                    cap = cv2.VideoCapture(camera_source, cv2.CAP_FFMPEG)
+                    
+                    # Set timeout properties for network streams (in milliseconds)
+                    cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)  # 5 second open timeout
+                    cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)  # 5 second read timeout
+                else:
+                    # For local cameras, use default backend
+                    cap = cv2.VideoCapture(camera_source)
+                
+                # Set buffer size for better performance
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                
+                # Check if opened successfully
+                if cap.isOpened():
+                    return cap
+                else:
+                    cap.release()
+                    
+            except Exception as e:
+                print(f"⚠️  Connection attempt {attempt + 1} failed: {e}")
+                if 'cap' in locals():
+                    cap.release()
+        
+        return None
+
     def capture_from_camera(
         self, camera_source: Union[int, str] = 0,
     ) -> Optional[np.ndarray]:
@@ -387,13 +434,10 @@ class AttendanceSystem:
         try:
             print(f"📷 Attempting to connect to camera: {camera_source}")
 
-            # Create VideoCapture object
-            cap = cv2.VideoCapture(camera_source)
+            # Create VideoCapture object with retry logic
+            cap = self._create_video_capture(camera_source, max_retries=3)
 
-            # Set buffer size for better performance
-            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-            if cap and cap.isOpened():
+            if cap is not None:
                 print("✅ Camera connection established")
 
                 # Try to read a frame
