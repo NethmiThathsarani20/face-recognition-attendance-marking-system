@@ -560,7 +560,11 @@
             
             fetch(url)
                 .then(response => response.json())
-                .then(data => updateAttendanceTable(data))
+                .then(data => {
+                    updateAttendanceTable(data);
+                    // Update attendance count
+                    document.getElementById('attendance_count').textContent = data.length;
+                })
                 .catch(error => console.error('Error refreshing attendance:', error));
         }
         
