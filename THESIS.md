@@ -27,15 +27,15 @@ This work stands as a testament to the collaborative effort and support of all m
 
 ## Abstract
 
-This thesis presents a comprehensive IoT-enabled face recognition attendance system that leverages edge computing principles through the integration of ESP32-CAM devices and Raspberry Pi. The system addresses traditional attendance marking limitations by implementing an automated, contactless solution powered by advanced deep learning techniques.
+This thesis presents a comprehensive IoT-enabled face recognition attendance system that brings together edge computing principles through innovative integration of ESP32-CAM devices and Raspberry Pi technology. Our system tackles persistent limitations of traditional attendance marking methods by implementing an automated, contactless solution powered by advanced deep learning techniques.
 
-The core architecture employs a hybrid edge-cloud approach where ESP32-CAM modules equipped with LED light panels capture high-quality facial images and stream them wirelessly to a Raspberry Pi acting as the edge computing host. The Raspberry Pi, enhanced with a cooling fan for thermal management, processes face recognition in real-time using InsightFace's buffalo_l model combined with a Logistic Regression classifier, achieving 99.74% accuracy on validation data comprising 67 users and 9,648 samples.
+The core architecture employs a hybrid edge-cloud approach where ESP32-CAM modules equipped with custom LED light panels capture high-quality facial images and stream them wirelessly to a Raspberry Pi acting as edge computing host. The Raspberry Pi, enhanced with active fan cooling for thermal management, processes face recognition in real-time using InsightFace's buffalo_l model combined with Logistic Regression classifier, achieving remarkable 99.74% accuracy on validation data comprising 67 users and 9,648 samples.
 
-The system architecture uniquely separates compute-intensive model training to GitHub Actions cloud infrastructure while maintaining real-time recognition capabilities at the edge. This design ensures low latency, privacy preservation, and eliminates continuous cloud dependency. The ESP32-CAM's integrated LED illumination ensures consistent image quality across varying lighting conditions, while the Raspberry Pi's active fan cooling maintains stable performance during continuous operation.
+What makes our architecture unique is how it intelligently separates compute-intensive model training to GitHub Actions cloud infrastructure while maintaining real-time recognition at the edge. This design ensures low latency, privacy preservation, and eliminates continuous cloud dependency. The ESP32-CAM's integrated LED illumination guarantees consistent image quality across varying lighting conditions, while active fan cooling maintains stable performance during continuous operation.
 
-Three model architectures were evaluated: the production Embedding Classifier achieving 99.74% accuracy, a Custom Embedding model at 98.86%, and a Lightweight CNN baseline at 64.04%. The Embedding Classifier was selected for production deployment due to its superior accuracy and minimal training time.
+We evaluated three model architectures: production Embedding Classifier achieving 99.74% accuracy, Custom Embedding model at 98.86%, and Lightweight CNN baseline at 64.04%. The Embedding Classifier was selected for production deployment due to superior accuracy and minimal training time.
 
-The system features a Flask-based web interface enabling user management, multi-camera support, real-time attendance monitoring, and comprehensive record keeping with automated JSON logs. The modular architecture supports scalability from small offices to larger institutions.
+The system features Flask-based web interface enabling user management, multi-camera support, real-time attendance monitoring, and comprehensive record keeping with automated JSON logs. The modular architecture scales from small offices to larger institutions.
 
 **Keywords:** Face Recognition, Attendance System, InsightFace, Edge Computing, ESP32-CAM, Raspberry Pi, IoT, Deep Learning, Computer Vision
 
@@ -2045,35 +2045,35 @@ tensorflow==2.10.0 (for CNN only)
 
 ### Figure 4.4: Embedding Classifier Confusion Matrix
 
-*[Image: Confusion matrix visualization showing model performance across 67 users]*
+![Embedding Classifier Confusion Matrix](embedding_models/embedding_confusion_matrix.png)
 
-Performance visualization for Embedding Classifier demonstrates strong diagonal elements indicating correct predictions with very few off-diagonal misclassifications. The matrix achieves 99.74% overall accuracy across 67 users, with misclassifications primarily occurring between visually similar individuals.
+**Figure 4.4:** Confusion matrix visualization showing the Embedding Classifier's performance across 67 users. The strong diagonal elements indicate correct predictions, with very few off-diagonal misclassifications, achieving 99.74% overall accuracy. Misclassifications occur primarily between visually similar individuals.
 
-(Available as generated image: embedding_models/embedding_confusion_matrix.png)
+(Image available at: embedding_models/embedding_confusion_matrix.png)
 
 ### Figure 4.5: Embedding Classifier Precision-Recall Curve
 
-*[Image: Precision-Recall curve showing model performance metrics]*
+![Embedding Classifier Precision-Recall Curve](embedding_models/embedding_precision_recall_curve.png)
 
-The precision-recall curve demonstrates high precision (>99%) and high recall (>99%) across all users with an Area Under Curve (AUC) of approximately 0.997, indicating consistent performance across all classes.
+**Figure 4.5:** Precision-Recall curve demonstrating the Embedding Classifier's excellent performance metrics. The curve shows high precision (>99%) and high recall (>99%) across all 67 users, with an Area Under Curve (AUC) of approximately 0.997, indicating highly consistent performance across all classes.
 
-(Available as generated image: embedding_models/embedding_precision_recall_curve.png)
+(Image available at: embedding_models/embedding_precision_recall_curve.png)
 
 ### Figure 4.6: Embedding Classifier Confidence Distribution
 
-*[Image: Histogram showing distribution of confidence scores]*
+![Embedding Classifier Confidence Distribution](embedding_models/embedding_confidence_curve.png)
 
-The confidence score distribution shows a peak at 90-100% confidence for most predictions, with very few predictions falling below 70% confidence. This clear separation between correct and incorrect predictions validates the 60% threshold choice for "Unknown" rejection.
+**Figure 4.6:** Histogram showing the distribution of confidence scores from the Embedding Classifier. The distribution peaks sharply at 90-100% confidence for most predictions, with very few predictions falling below 70% confidence. This clear separation between correct and incorrect predictions validates our choice of 60% threshold for "Unknown" rejection, ensuring high reliability in real-world deployment.
 
-(Available as generated image: embedding_models/embedding_confidence_curve.png)
+(Image available at: embedding_models/embedding_confidence_curve.png)
 
 ### Figure 4.7: CNN Model Confusion Matrix
 
-*[Image: Confusion matrix for CNN model showing scattered misclassifications]*
+![CNN Model Confusion Matrix](cnn_models/cnn_confusion_matrix.png)
 
-The CNN model confusion matrix shows weaker diagonal elements compared to the Embedding Classifier with more scattered misclassifications throughout, achieving 64.04% overall accuracy. This demonstrates the challenge of training from scratch on limited data.
+**Figure 4.7:** Confusion matrix for the Lightweight CNN model trained from scratch. The matrix shows noticeably weaker diagonal elements compared to the Embedding Classifier, with more scattered misclassifications throughout, achieving only 64.04% overall accuracy. This clearly demonstrates the significant challenge of training deep learning models from scratch on limited datasets, reinforcing the value of transfer learning approaches.
 
-(Available as generated image: cnn_models/cnn_confusion_matrix.png)
+(Image available at: cnn_models/cnn_confusion_matrix.png)
 
 ### Table 4.2: Hardware Performance Analysis
 
