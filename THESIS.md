@@ -618,7 +618,7 @@ The ESP32-CAM module serves as the primary image acquisition device in our syste
 
 #### LED Light Panel Integration
 
-The LED light panel provides consistent facial illumination regardless of ambient lighting conditions. The panel consists of 5V LED strip tape configured in a ring arrangement around the camera lens to create professional ring-light illumination.
+The LED light panel provides consistent facial illumination regardless of ambient lighting conditions. The panel consists of 5V LED strips configured in a ring arrangement around the camera lens to create professional ring-light illumination.
 
 *[Image: Close-up of LED panel ring configuration around ESP32-CAM lens]*
 
@@ -1827,9 +1827,8 @@ def mark_attendance(user_name, confidence, image_path):
 - OS: Raspberry Pi OS 64-bit (Debian Bullseye)
 - SD Card: SanDisk 32GB Class 10 UHS-I
 - Power Supply: Official 5V/3A USB-C adapter
-- Cooling: 30mm × 30mm × 7mm 5V fan (3000 RPM)
+- Cooling: 30mm × 30mm × 7mm 5V fan (3000 RPM) for active cooling
 - Network: WiFi 802.11ac (5GHz band)
-- Additional: Aluminum heatsink on CPU with thermal paste
 
 **ESP32-CAM Setup**:
 - Quantity: 3 units (entry, exit, office)
