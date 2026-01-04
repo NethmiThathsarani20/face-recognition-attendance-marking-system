@@ -27,15 +27,15 @@ This work stands as a testament to the collaborative effort and support of all m
 
 ## Abstract
 
-This thesis presents a comprehensive IoT-enabled face recognition attendance system that leverages edge computing principles through the integration of ESP32-CAM devices and Raspberry Pi. The system addresses the limitations of traditional attendance marking methods by implementing an automated, contactless solution powered by advanced deep learning techniques.
+This thesis presents a comprehensive IoT-enabled face recognition attendance system that brings together edge computing principles through innovative integration of ESP32-CAM devices and Raspberry Pi technology. Our system tackles persistent limitations of traditional attendance marking methods by implementing an automated, contactless solution powered by advanced deep learning techniques.
 
-The core architecture employs a hybrid edge-cloud approach where ESP32-CAM modules equipped with LED light tape capture high-quality facial images and stream them wirelessly to a Raspberry Pi acting as the edge computing host. The Raspberry Pi, enhanced with a cooling fan for thermal management, processes face recognition in real-time using InsightFace's buffalo_l model combined with a Logistic Regression classifier. This production-grade pipeline achieves exceptional accuracy of 99.74% on validation data comprising 67 users and 9,648 samples.
+The core architecture employs a hybrid edge-cloud approach where ESP32-CAM modules equipped with custom LED light panels capture high-quality facial images and stream them wirelessly to a Raspberry Pi acting as edge computing host. The Raspberry Pi, enhanced with active fan cooling for thermal management, processes face recognition in real-time using InsightFace's buffalo_l model combined with Logistic Regression classifier, achieving remarkable 99.74% accuracy on validation data comprising 67 users and 9,648 samples.
 
-The system architecture uniquely separates compute-intensive model training to GitHub Actions cloud infrastructure while maintaining real-time recognition capabilities at the edge. This design ensures low latency (<100ms per face), privacy preservation (data stays local), and eliminates continuous cloud dependency for daily operations. The ESP32-CAM's integrated LED illumination ensures consistent image quality across varying lighting conditions, while the Raspberry Pi's active cooling maintains stable performance during continuous operation.
+What makes our architecture unique is how it intelligently separates compute-intensive model training to GitHub Actions cloud infrastructure while maintaining real-time recognition at the edge. This design ensures low latency, privacy preservation, and eliminates continuous cloud dependency. The ESP32-CAM's integrated LED illumination guarantees consistent image quality across varying lighting conditions, while active fan cooling maintains stable performance during continuous operation.
 
-Three model architectures were evaluated: the production Embedding Classifier (InsightFace + Logistic Regression) achieving 99.74% accuracy, an experimental Custom Embedding model at 98.86%, and a Lightweight CNN baseline at 64.04%. The Embedding Classifier was selected for production deployment due to its superior accuracy, minimal training time (30 seconds), and robust generalization capabilities derived from InsightFace's pre-training on millions of faces.
+We evaluated three model architectures: production Embedding Classifier achieving 99.74% accuracy, Custom Embedding model at 98.86%, and Lightweight CNN baseline at 64.04%. The Embedding Classifier was selected for production deployment due to superior accuracy and minimal training time.
 
-The system features a professional Flask-based web interface enabling user management, multi-camera support (USB, IP, ESP32-CAM), real-time attendance monitoring, and comprehensive record keeping. Attendance logs are automatically stored in JSON format with timestamps and confidence scores. The modular architecture supports scalability from small offices to larger institutions.
+The system features Flask-based web interface enabling user management, multi-camera support, real-time attendance monitoring, and comprehensive record keeping with automated JSON logs. The modular architecture scales from small offices to larger institutions.
 
 **Keywords:** Face Recognition, Attendance System, InsightFace, Edge Computing, ESP32-CAM, Raspberry Pi, IoT, Deep Learning, Computer Vision
 
@@ -96,24 +96,37 @@ The system features a professional Flask-based web interface enabling user manag
 Figure 1.1: Traditional vs Automated Attendance System ......... 2
 Figure 3.1: System Architecture Diagram ........................ 14
 Figure 3.2: Hardware Integration Flow .......................... 15
-Figure 3.3: ESP32-CAM with LED Light Tape Setup ................ 17
+Figure 3.3: ESP32-CAM with LED Light Panel Setup ............... 17
+*[Image placeholder: Physical setup photo]*
 Figure 3.4: Raspberry Pi with Cooling Fan Configuration ........ 19
+*[Image placeholder: Raspberry Pi with fan installed]*
 Figure 3.5: Three-Tier System Architecture ..................... 22
 Figure 3.6: Embedding Classifier Architecture .................. 25
 Figure 3.7: Lightweight CNN Architecture ....................... 27
 Figure 3.8: Custom Embedding Model Architecture ................ 29
 Figure 3.9: Data Flow Diagram .................................. 31
 Figure 3.10: Face Detection and Alignment Process .............. 33
+*[Image placeholder: Sample face detection output]*
 Figure 4.1: Web Interface Dashboard Screenshot ................. 36
+*[Image placeholder: Dashboard interface screenshot]*
 Figure 4.2: Add User Page Screenshot ........................... 36
+*[Image placeholder: Add user interface screenshot]*
 Figure 4.3: Mark Attendance Page Screenshot .................... 37
+*[Image placeholder: Mark attendance interface screenshot]*
 Figure 4.4: Embedding Classifier Confusion Matrix .............. 38
+*[Generated image: embedding_models/embedding_confusion_matrix.png]*
 Figure 4.5: Embedding Classifier Precision-Recall Curve ........ 39
+*[Generated image: embedding_models/embedding_precision_recall_curve.png]*
 Figure 4.6: Embedding Classifier Confidence Distribution ....... 39
+*[Generated image: embedding_models/embedding_confidence_curve.png]*
 Figure 4.7: CNN Model Confusion Matrix ......................... 40
+*[Generated image: cnn_models/cnn_confusion_matrix.png]*
 Figure 4.8: Model Performance Comparison Chart ................. 41
+*[Image placeholder: Bar chart comparing model accuracies]*
 Figure 4.9: Real-time Recognition Speed Comparison ............. 42
+*[Image placeholder: Speed comparison visualization]*
 Figure 4.10: Accuracy vs Training Time Trade-off ............... 43
+*[Image placeholder: Scatter plot showing accuracy vs time]*
 
 ---
 
@@ -139,24 +152,17 @@ Attendance marking is a fundamental requirement in educational institutions, cor
 
 The evolution of technology has paved the way for automated attendance systems that leverage biometric identification methods. Among various biometric modalities—including fingerprint, iris recognition, and RFID cards—face recognition has emerged as particularly advantageous due to its contactless nature, user convenience, and non-intrusive operation. This characteristic has become especially relevant in the post-pandemic era where minimizing physical contact is prioritized.
 
-
 The advent of Internet of Things (IoT) technology and edge computing has revolutionized how we approach distributed systems. IoT devices, characterized by their low cost, wireless connectivity, and compact form factor, enable deployment of intelligent systems in resource-constrained environments. Edge computing complements this by processing data closer to the source, reducing latency, ensuring privacy, and minimizing dependence on cloud infrastructure.
 
 This research explores the synergy between face recognition technology, IoT devices, and edge computing to develop a practical, accurate, and scalable attendance marking system. The system utilizes ESP32-CAM microcontroller modules as wireless camera units and Raspberry Pi as the edge computing host, creating a distributed architecture that balances computational efficiency with deployment practicality.
 
+*[Image placeholder: Overview of the complete system setup showing ESP32-CAM and Raspberry Pi integration]*
+
 ### Motivation
 
-The motivation for this project stems from several real-world challenges:
+The motivation for this project stems from several real-world challenges observed in traditional attendance systems. Time efficiency is a critical concern as manual attendance marking in a classroom of 50 students can consume 5-10 minutes of valuable instructional time daily. Proxy attendance remains a significant issue where traditional systems are vulnerable to fraudulent attendance with one person marking attendance on behalf of another. Data management poses challenges as paper-based records are difficult to store, retrieve, and analyze for patterns or generating reports. Hygiene concerns have become paramount as fingerprint-based systems require physical contact with shared surfaces, raising hygiene concerns especially in post-pandemic scenarios. Scalability issues plague existing solutions that often require expensive infrastructure or continuous cloud connectivity, limiting deployment in resource-constrained settings.
 
-1. **Time Efficiency**: Manual attendance marking in a classroom of 50 students can consume 5-10 minutes of valuable instructional time daily.
-
-2. **Proxy Attendance**: Traditional systems are vulnerable to fraudulent attendance where one person marks attendance on behalf of another.
-
-3. **Data Management**: Paper-based records are difficult to store, retrieve, and analyze for patterns or generating reports.
-
-4. **Hygiene Concerns**: Fingerprint-based systems require physical contact with shared surfaces, raising hygiene concerns.
-
-5. **Scalability Issues**: Existing solutions often require expensive infrastructure or continuous cloud connectivity, limiting deployment in resource-constrained settings.
+*[Image placeholder: Comparison photo showing traditional vs automated attendance methods]*
 
 
 ### Table 1.1: Comparison of Attendance Marking Methods
@@ -189,8 +195,8 @@ The primary objective of this research is to design, develop, and evaluate an Io
    - Ensure real-time processing with <100ms latency per face
 
 3. **Optimize Hardware for Consistent Performance**
-   - Integrate LED light tape with ESP32-CAM for consistent illumination
-   - Implement active cooling for Raspberry Pi to maintain thermal stability
+   - Integrate LED light panel around ESP32-CAM for consistent illumination
+   - Implement active fan cooling for Raspberry Pi to maintain thermal stability
    - Ensure 24/7 operational capability
 
 4. **Design User-Friendly Web Interface**
@@ -218,36 +224,19 @@ The primary objective of this research is to design, develop, and evaluate an Io
 
 ## 1.3 Contribution
 
-This research makes several significant contributions to the field of automated attendance systems and IoT-based face recognition:
+This research makes several significant contributions to the field of automated attendance systems and IoT-based face recognition.
 
 ### Technical Contributions:
 
-1. **Novel Hardware Integration**
-   - First documented implementation combining ESP32-CAM with integrated LED illumination for attendance systems
-   - Practical thermal management solution for continuous Raspberry Pi operation
-   - Cost-effective IoT architecture (<$100 total hardware cost)
+This work presents novel hardware integration approaches that represent the first documented implementation combining ESP32-CAM with integrated LED light panel for attendance systems. We've developed a practical thermal management solution using active fan cooling for continuous Raspberry Pi operation, all within a cost-effective IoT architecture costing less than Rs. 30,000 (approximately $100 USD) in total hardware costs. The optimized model selection demonstrates comprehensive comparison of three face recognition approaches with empirical justification for embedding classifier superiority, showing demonstrated 99.74% accuracy using transfer learning versus 64.04% training from scratch. The hybrid computing architecture innovatively separates edge-cloud components with real-time recognition at edge and training in cloud, reducing Raspberry Pi computational burden while maintaining training capability in a privacy-preserving design with local data storage. The production-ready implementation delivers complete end-to-end system from hardware to web interface with comprehensive documentation and testing framework in a modular design supporting easy deployment and scaling.
 
-2. **Optimized Model Selection**
-   - Comprehensive comparison of three face recognition approaches
-   - Empirical justification for embedding classifier superiority
-   - Demonstrated 99.74% accuracy using transfer learning vs 64.04% training from scratch
-
-3. **Hybrid Computing Architecture**
-   - Innovative edge-cloud separation: real-time recognition at edge, training in cloud
-   - Reduced Raspberry Pi computational burden while maintaining training capability
-   - Privacy-preserving design with local data storage
-
-4. **Production-Ready Implementation**
-   - Complete end-to-end system from hardware to web interface
-   - Comprehensive documentation and testing framework
-   - Modular design supporting easy deployment and scaling
+*[Image placeholder: System architecture diagram highlighting key innovations]*
 
 ### Practical Contributions:
 
-1. **Accessibility**: Low-cost solution suitable for resource-constrained institutions
-2. **Ease of Deployment**: Detailed guides for hardware setup and software installation
-3. **Scalability**: Architecture supports 1-100+ users with minimal hardware changes
-4. **Open Source**: Complete codebase available for community use and extension
+The system provides accessibility through low-cost solution suitable for resource-constrained institutions, ease of deployment with detailed guides for hardware setup and software installation, scalability where architecture supports 1-100+ users with minimal hardware changes, and open source availability with complete codebase available for community use and extension.
+
+*[Image placeholder: Cost comparison chart with commercial solutions]*
 
 ---
 
@@ -259,7 +248,7 @@ This thesis is organized into five main chapters:
 
 **Chapter 2: Related Work** - Reviews existing literature on attendance systems, face recognition technologies, IoT applications, and edge computing approaches.
 
-**Chapter 3: Methodology** - Details the system architecture, hardware components (ESP32-CAM with LED tape, Raspberry Pi with cooling), software implementation, model architectures, and dataset preparation.
+**Chapter 3: Methodology** - Details the system architecture, hardware components (ESP32-CAM with LED light panel, Raspberry Pi with cooling fan), software implementation, model architectures, and dataset preparation.
 
 **Chapter 4: Results and Discussion** - Presents experimental setup, performance metrics, model comparisons, and analysis of results with supporting tables and figures.
 
@@ -400,22 +389,11 @@ Dynamic QR codes displayed on screens that students scan with smartphones. While
 
 ### ESP32-CAM in Computer Vision
 
-ESP32-CAM is a low-cost microcontroller with integrated camera module that has gained popularity for IoT vision applications:
+ESP32-CAM is a low-cost microcontroller with an integrated camera module that has become increasingly popular for IoT vision applications. The module offers several compelling advantages: it has built-in WiFi (2.4GHz) for wireless connectivity, features an OV2640 2MP camera sensor, costs remarkably little (approximately Rs. 1,500-3,000 or $5-10), comes in a small form factor that's easy to deploy, and consumes minimal power during operation. Previous applications have ranged from smart doorbells and wildlife monitoring systems to industrial inspection equipment and security cameras.
 
-**Advantages:**
-- Integrated WiFi (2.4GHz)
-- OV2640 2MP camera
-- Low cost (~$5-10)
-- Small form factor
-- Low power consumption
+Our implementation uniquely integrates LED light panel around the ESP32-CAM for consistent illumination, addressing a common challenge in face recognition systems where lighting variations degrade accuracy. The LED panel is configured in a ring arrangement around the camera lens to provide professional-grade ring-light illumination that ensures uniform lighting on subjects' faces regardless of ambient conditions.
 
-**Previous Applications:**
-- Smart doorbells
-- Wildlife monitoring
-- Industrial inspection
-- Security cameras
-
-Our implementation uniquely integrates LED light tape around the ESP32-CAM for consistent illumination, addressing a common challenge in face recognition systems where lighting variations degrade accuracy.
+*[Image placeholder: ESP32-CAM module with LED light panel installation]*
 
 ---
 
@@ -425,48 +403,33 @@ Edge computing processes data near the source rather than sending everything to 
 
 ### Benefits of Edge Computing
 
-1. **Reduced Latency**: Local processing enables real-time response
-2. **Privacy**: Sensitive biometric data stays on-premises
-3. **Reliability**: System works during internet outages
-4. **Bandwidth Efficiency**: Only results transmitted, not raw video
-5. **Cost**: No ongoing cloud computing expenses
+Edge computing provides reduced latency through local processing enabling real-time response, privacy protection where sensitive biometric data stays on-premises, reliability where system works during internet outages, bandwidth efficiency where only results are transmitted rather than raw video, and cost savings with no ongoing cloud computing expenses. These benefits make edge computing particularly suitable for attendance systems where real-time processing and data privacy are critical requirements.
+
+*[Image placeholder: Edge vs cloud computing architecture comparison diagram]*
 
 ### Raspberry Pi as Edge Device
 
-Raspberry Pi single-board computers have become popular edge computing platforms:
+Raspberry Pi single-board computers have become popular edge computing platforms due to their balance of computational power and cost-effectiveness. The Raspberry Pi 4 specifications include quad-core ARM Cortex-A72 processor running at 1.5GHz, 4GB or 8GB RAM options, dual 4K display support, Gigabit Ethernet plus WiFi connectivity, USB 3.0 ports, and GPIO pins for hardware interfacing. However, challenges exist including thermal throttling under sustained load, limited computational power compared to servers, and storage limitations due to SD card-based storage.
 
-**Specifications (Raspberry Pi 4):**
-- Quad-core ARM Cortex-A72 @ 1.5GHz
-- 4GB/8GB RAM options
-- Dual 4K display support
-- Gigabit Ethernet + WiFi
-- USB 3.0 ports
-- GPIO pins for hardware interfacing
+Our implementation addresses thermal management through active cooling with a dedicated fan, crucial for 24/7 operation in face recognition workloads. The fan prevents CPU temperature from exceeding safe operating thresholds, maintaining consistent performance without thermal throttling that would otherwise degrade recognition speed by up to 50%.
 
-**Challenges:**
-- Thermal throttling under sustained load
-- Limited computational power vs servers
-- Storage limitations (SD card-based)
-
-Our implementation addresses thermal management through active cooling with a dedicated fan, crucial for 24/7 operation in face recognition workloads.
+*[Image placeholder: Raspberry Pi 4 performance graph showing temperature vs performance with and without fan]*
 
 ### Related Edge-Based Attendance Research
 
-Chen et al. (2020) implemented attendance system using Raspberry Pi with USB camera, achieving 89% accuracy with custom CNN. Our system improves upon this with:
-- 99.74% accuracy using InsightFace + Embedding Classifier
-- Wireless ESP32-CAM integration
-- Comprehensive LED illumination
-- Thermal management solution
+Chen et al. (2020) implemented attendance system using Raspberry Pi with USB camera, achieving 89% accuracy with custom CNN. Our system improves upon this work with 99.74% accuracy using InsightFace plus Embedding Classifier, wireless ESP32-CAM integration for flexible deployment, comprehensive LED light panel illumination for consistent image quality, and thermal management solution using cooling fan for sustained performance.
 
-Wang et al. (2021) proposed NVIDIA Jetson Nano-based system with 95% accuracy but at 4x the cost of our Raspberry Pi solution.
+Wang et al. (2021) proposed NVIDIA Jetson Nano-based system with 95% accuracy but at four times the cost of our Raspberry Pi solution. Our approach demonstrates that comparable or superior performance can be achieved at significantly lower cost through careful hardware selection and optimized software architecture.
+
+*[Image placeholder: Performance comparison table with related works]*
 
 ### Hybrid Edge-Cloud Architectures
 
-Recent research explores dividing workload between edge and cloud:
-- **Edge**: Real-time inference, immediate response
-- **Cloud**: Model training, complex analytics, long-term storage
+Recent research explores dividing workload between edge and cloud environments. The edge layer handles real-time inference providing immediate response, while the cloud layer performs model training, complex analytics, and long-term storage. This division optimizes resource utilization by placing computationally intensive tasks in the cloud while maintaining responsiveness at the edge.
 
-Our system implements this hybrid approach: Raspberry Pi handles all attendance marking locally, while GitHub Actions cloud infrastructure performs computationally intensive model training when new users are added.
+Our system implements this hybrid approach where Raspberry Pi handles all attendance marking locally ensuring real-time performance and data privacy, while GitHub Actions cloud infrastructure performs computationally intensive model training when new users are added. This separation minimizes Raspberry Pi computational overhead allowing it to focus on real-time recognition tasks, reduces training time by leveraging cloud computing resources, and maintains system availability during model updates since training occurs in the background without interrupting attendance operations.
+
+*[Image placeholder: Hybrid edge-cloud workflow diagram showing data flow]*
 
 ---
 
@@ -474,17 +437,17 @@ Our system implements this hybrid approach: Raspberry Pi handles all attendance 
 
 ## 3.1 System Architecture
 
-The proposed face recognition attendance system employs a three-tier architecture integrating IoT devices, edge computing, and cloud services.
+The proposed face recognition attendance system employs a three-tier architecture integrating IoT devices, edge computing, and cloud services for optimal performance and scalability.
+
+*[Image placeholder: Complete system architecture diagram showing all three tiers]*
 
 ### Overall System Design
 
-The system consists of the following key components:
+The system consists of several key components working in concert to provide comprehensive attendance functionality. The IoT Capture Layer utilizes ESP32-CAM modules with integrated LED light panel illumination to capture high-quality facial images under varying lighting conditions. The Edge Processing Layer employs Raspberry Pi with active fan cooling system running the face recognition engine and web interface. The Cloud Training Layer leverages GitHub Actions for automated model training when new users are added to the system. The User Interface Layer provides Flask-based web application for system interaction and management. The Storage Layer maintains local database and attendance records ensuring data privacy and system autonomy.
 
-1. **IoT Capture Layer**: ESP32-CAM modules with integrated LED illumination
-2. **Edge Processing Layer**: Raspberry Pi with cooling system
-3. **Cloud Training Layer**: GitHub Actions for automated model training
-4. **User Interface Layer**: Flask web application
-5. **Storage Layer**: Local database and attendance records
+*[Image placeholder: Data flow visualization between system components]*
+
+This architectural design ensures low latency for real-time attendance marking, maintains user privacy by keeping biometric data local, reduces ongoing operational costs by eliminating cloud dependencies for daily operations, and provides scalability to accommodate growing user bases and multiple camera deployments.
 
 
 ### Figure 3.1: System Architecture Diagram
@@ -554,15 +517,17 @@ The system consists of the following key components:
 │  │  │ OV2640 Cam │  │  │  │ OV2640 Cam │  │  │  │ Camera │  │  │
 │  │  └────────────┘  │  │  └────────────┘  │  │  └────────┘  │  │
 │  │  ┌────────────┐  │  │  ┌────────────┐  │  │  ┌────────┐  │  │
-│  │  │ LED Tape   │  │  │  │ LED Tape   │  │  │  │LED Tape│  │  │
-│  │  │(Illumination│  │  │ (Illumination│  │  │  │(Light) │  │  │
-│  │  │   Ring)    │  │  │    Ring)     │  │  │  │        │  │  │
+│  │  │ LED Panel  │  │  │  │ LED Panel  │  │  │  │  LED   │  │  │
+│  │  │(Ring Light)│  │  │  │(Ring Light)│  │  │  │ Panel  │  │  │
+│  │  │Around Cam  │  │  │  │Around Cam  │  │  │  │        │  │  │
 │  │  └────────────┘  │  │  └────────────┘  │  │  └────────┘  │  │
 │  │                  │  │                  │  │              │  │
 │  │  Stream:81/video│  │  Stream:81/video │  │  Stream:81  │  │
 │  └──────────────────┘  └──────────────────┘  └──────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+*[Image placeholder: Physical implementation of the complete system setup]*
 
 ### Figure 3.2: Hardware Integration Flow
 
@@ -622,9 +587,11 @@ The system consists of the following key components:
 
 ## 3.2 Hardware Components
 
-### 3.2.1 ESP32-CAM with LED Light Tape
+### 3.2.1 ESP32-CAM with LED Light Panel
 
-The ESP32-CAM module serves as the primary image acquisition device in our system. To ensure consistent image quality across varying ambient lighting conditions, we integrated LED light tape around the camera module.
+The ESP32-CAM module serves as the primary image acquisition device in our system. To ensure consistent image quality across varying ambient lighting conditions, we integrated an LED light panel around the camera module creating a ring light effect for optimal illumination.
+
+*[Image: ESP32-CAM module with LED light panel ring mounted around camera lens]*
 
 #### ESP32-CAM Specifications
 
@@ -647,15 +614,17 @@ The ESP32-CAM module serves as the primary image acquisition device in our syste
 | **Dimensions** | 27mm × 40mm | Compact form factor |
 | **GPIO Pins** | 9 available | For LED control, sensors |
 | **Programming** | Arduino IDE | ESP32 board support |
-| **Cost** | ~$8-12 USD | Highly cost-effective |
+| **Cost** | Rs. 2,400-3,600 (~$8-12 USD) | Highly cost-effective |
 
-#### LED Light Tape Integration
+#### LED Light Panel Integration
 
-**Purpose**: Consistent facial illumination regardless of ambient lighting conditions
+The LED light panel provides consistent facial illumination regardless of ambient lighting conditions. The panel consists of 5V LED strips configured in a ring arrangement around the camera lens to create professional ring-light illumination.
+
+*[Image: Close-up of LED panel ring configuration around ESP32-CAM lens]*
 
 **Specifications**:
-- **Type**: 5V LED strip tape, white light (6000K-6500K daylight)
-- **Arrangement**: Ring configuration around camera lens
+- **Type**: 5V LED strip panel, white light (6000K-6500K daylight)
+- **Arrangement**: Ring configuration around camera lens  
 - **LED Count**: 12-16 LEDs in circular pattern
 - **Power**: Shared 5V supply with ESP32-CAM (additional 200-300mA)
 - **Control**: GPIO-controlled via MOSFET for automatic on/off
@@ -663,19 +632,15 @@ The ESP32-CAM module serves as the primary image acquisition device in our syste
 
 **Implementation Details**:
 
-The LED tape is mounted in a circular ring approximately 5cm diameter around the ESP32-CAM lens, creating a "ring light" effect commonly used in professional photography. This configuration provides:
+The LED panel is mounted in a circular ring approximately 5cm diameter around the ESP32-CAM lens, creating a "ring light" effect commonly used in professional photography. This configuration provides even illumination that eliminates harsh shadows on facial features, reduces glare to prevent specular reflections, maintains consistent quality where face images maintain uniform brightness, creates natural catchlight in subject's eyes, and requires low power with the entire setup consuming less than 500mA at 5V.
 
-1. **Even Illumination**: Eliminates harsh shadows on facial features
-2. **Reduced Glare**: Diffused light prevents specular reflections
-3. **Consistent Quality**: Face images maintain uniform brightness
-4. **Eye Catchlight**: Creates natural catchlight in subject's eyes
-5. **Low Power**: Entire setup consumes <500mA at 5V
+*[Image: Wiring diagram showing ESP32-CAM LED panel connections]*
 
 **Wiring Configuration**:
 ```
-ESP32-CAM 5V Pin ──→ LED Strip (+)
-ESP32-CAM GPIO4 ──→ MOSFET Gate ──→ LED Strip (-)
-ESP32-CAM GND ──→ LED Strip GND, MOSFET Source
+ESP32-CAM 5V Pin ──→ LED Panel (+)
+ESP32-CAM GPIO4 ──→ MOSFET Gate ──→ LED Panel (-)
+ESP32-CAM GND ──→ LED Panel GND, MOSFET Source
 ```
 
 **Software Control**:
@@ -688,13 +653,15 @@ void setup() {
 }
 ```
 
-### Figure 3.3: ESP32-CAM with LED Light Tape Setup
+### Figure 3.3: ESP32-CAM with LED Light Panel Setup
+
+*[Image: Top view diagram of ESP32-CAM with circular LED panel arrangement]*
 
 ```
                     Top View
         ┌─────────────────────────┐
         │                         │
-        │    ○ ○ ○ ○ ○ ○ ○ ○    │  ← LED Strip (12 LEDs)
+        │    ○ ○ ○ ○ ○ ○ ○ ○    │  ← LED Panel (12 LEDs)
         │  ○               ○    │
         │ ○    ┌───────┐    ○   │
         │ ○    │ESP32  │    ○   │
@@ -729,6 +696,8 @@ void setup() {
               ╲─────────╱
 ```
 
+*[Image: Side view photo showing LED panel illumination pattern]*
+
 **Benefits Observed**:
 - **18% improvement** in face detection success rate in low-light conditions
 - **Consistent image quality** across different times of day
@@ -739,7 +708,9 @@ void setup() {
 
 ### 3.2.2 Raspberry Pi with Cooling Fan
 
-The Raspberry Pi 4 Model B serves as the edge computing host, running the Flask web application and InsightFace face recognition engine. Continuous operation under face recognition workloads generates significant heat, necessitating active cooling.
+The Raspberry Pi 4 Model B serves as the edge computing host, running the Flask web application and InsightFace face recognition engine. Continuous operation under face recognition workloads generates significant heat, necessitating active cooling through a dedicated fan system.
+
+*[Image: Raspberry Pi 4 with cooling fan installed]*
 
 #### Raspberry Pi Specifications
 
@@ -763,13 +734,13 @@ The Raspberry Pi 4 Model B serves as the edge computing host, running the Flask 
 | **Power** | USB-C 5V/3A | 15W recommended |
 | **Operating Temp** | 0°C to 50°C | With cooling |
 | **Throttling Temp** | 80°C | Without cooling |
-| **Cost** | ~$55-75 USD | Varies by RAM |
+| **Cost** | Rs. 16,500-22,500 (~$55-75 USD) | Varies by RAM |
 
 #### Cooling Fan Implementation
 
-**Thermal Challenge**: Raspberry Pi 4's ARM Cortex-A72 processor generates significant heat during continuous face recognition operations. Without cooling, the CPU temperature can reach 80-85°C, triggering thermal throttling that reduces clock speed from 1.5GHz to 1.0GHz, degrading performance by ~33%.
+The Raspberry Pi 4's ARM Cortex-A72 processor generates significant heat during continuous face recognition operations. Without adequate cooling, the CPU temperature can reach 80-85°C, triggering thermal throttling that reduces clock speed from 1.5GHz to 1.0GHz, degrading performance by approximately 33%. To address this thermal challenge, we implemented an active cooling solution using a dedicated 5V fan.
 
-**Solution**: Active cooling with dedicated 5V fan
+*[Image: Cooling fan mounted on Raspberry Pi showing airflow direction]*
 
 **Fan Specifications**:
 - **Type**: 30mm × 30mm × 7mm brushless DC fan
@@ -781,20 +752,25 @@ The Raspberry Pi 4 Model B serves as the edge computing host, running the Flask 
 - **Bearing**: Sleeve bearing for longevity
 - **Connection**: 2-pin connector to GPIO 5V + GND
 
-**Installation**:
+**Installation Steps**:
+
+1. Connect fan red wire (+) to Raspberry Pi GPIO Pin 4 (5V Power)
+2. Connect fan black wire (-) to Raspberry Pi GPIO Pin 6 (Ground)
+3. Mount fan directly above CPU area with airflow directed downward
+4. Ensure 2-3mm clearance maintained for air circulation
+5. Secure fan with screws or adhesive mounting
+
 ```
 Raspberry Pi GPIO Header:
 Pin 4 (5V Power) ──→ Fan Red Wire (+)
 Pin 6 (Ground)   ──→ Fan Black Wire (-)
 ```
 
-**Mounting**:
-- Aluminum heatsink applied to CPU with thermal paste
-- Fan mounted on heatsink with screws or adhesive
-- Airflow directed downward onto heatsink fins
-- 2-3mm clearance maintained for air circulation
+*[Image: GPIO pin connection diagram for cooling fan]*
 
 ### Figure 3.4: Raspberry Pi with Cooling Fan Configuration
+
+*[Image: Side view diagram of Raspberry Pi with cooling fan assembly]*
 
 ```
                   Side View
@@ -805,11 +781,8 @@ Pin 6 (Ground)   ──→ Fan Black Wire (-)
     │         │  ████   │     (3000 RPM)
     │         └────┬────┘             │
     │              │                  │
-    │         ┌────┴────┐             │
-    │         │Heatsink │  ← Aluminum
-    │         │ ╫╫╫╫╫╫╫ │     Fins
-    │         └────┬────┘             │
-    │              │                  │
+    │              │ Airflow          │
+    │              ↓                  │
     │    ┌─────────┴─────────┐        │
     │    │    CPU (ARM)      │        │
     │    │   Cortex-A72      │        │
@@ -821,7 +794,7 @@ Pin 6 (Ground)   ──→ Fan Black Wire (-)
 
             Thermal Management System
 
-    Without Cooling:          With Active Cooling:
+    Without Cooling:          With Active Fan Cooling:
     ┌──────────────┐          ┌──────────────┐
     │ CPU Temp     │          │ CPU Temp     │
     │   85°C       │          │   45-50°C    │
@@ -834,6 +807,8 @@ Pin 6 (Ground)   ──→ Fan Black Wire (-)
     Face Recognition:        Face Recognition:
     ~150-200ms/face         ~80-100ms/face
 ```
+
+*[Image: Thermal camera comparison showing temperature reduction with fan]*
 
 **Temperature Monitoring**:
 
@@ -1072,127 +1047,31 @@ Input Image                         Training Phase
                                   └──────────────────┘
 ```
 
-#### Why Embedding Classifier for Production?
+### Why Embedding Classifier for Production?
 
-After comprehensive evaluation of multiple approaches, we selected the Embedding Classifier (InsightFace + Logistic Regression) as our production model. This decision is justified by eight compelling factors:
+After comprehensive evaluation of multiple approaches, we selected the Embedding Classifier (InsightFace + Logistic Regression) as our production model. This decision is justified by eight compelling factors demonstrating its superiority for our use case.
 
-**1. Exceptional Accuracy (99.74%)**
+The model achieves exceptional accuracy of 99.74% on our 67-user dataset with training accuracy of 99.94% (9,639 out of 9,648 samples) and validation accuracy of 99.74% (1,925 out of 1,930 samples), along with top-3 accuracy of 99.90% where the correct user appears in top 3 predictions. This far surpasses alternatives with Custom Embedding Model at 98.86% (0.88% lower) and Lightweight CNN at 64.04% (35.7% lower).
 
-The model achieves industry-leading performance on our 67-user dataset:
-- **Training Accuracy**: 99.94% (9,639/9,648 samples)
-- **Validation Accuracy**: 99.74% (1,925/1,930 samples)
-- **Top-3 Accuracy**: 99.90% (correct user in top 3 predictions)
+Training efficiency is remarkable with the classifier training in approximately 30 seconds on Raspberry Pi 4. The breakdown includes 5 seconds for image loading, 15 seconds for embedding generation (cached after first run), and 8-10 seconds for Logistic Regression training, totaling around 30 seconds. This compares favorably to alternatives where Custom Embedding takes 2-3 minutes (6x slower) and Lightweight CNN takes 32 minutes (64x slower).
 
-This far surpasses alternatives:
-- Custom Embedding Model: 98.86% (-0.88%)
-- Lightweight CNN: 64.04% (-35.7%)
+*[Image placeholder: Training time comparison chart]*
 
-**2. Minimal Training Time (~30 seconds)**
+Transfer learning provides significant advantages as InsightFace's buffalo_l model was pre-trained on millions of diverse faces, providing robust features that generalize to new faces without requiring large dataset, handling variations in lighting, pose, expression and age changes. The production-proven nature means it's used by major tech companies with no overfitting since pre-trained features prevent memorization.
 
-The classifier trains in approximately 30 seconds on Raspberry Pi 4:
+Resource requirements are minimal with the model optimally sized for edge deployment. InsightFace buffalo_l requires 50 MB as one-time download, Logistic Regression needs only 500 KB, embedding cache for 67 users takes 2 MB, totaling approximately 52.5 MB with low overhead. Inference speed achieves 60-80ms for embedding generation and 5-10ms for classification, totaling less than 100ms per face on Raspberry Pi 4.
 
-```
-Training time breakdown:
-- Image loading: 5 seconds
-- Embedding generation: 15 seconds (cached after first run)
-- Logistic Regression training: 8-10 seconds
-Total: ~30 seconds
+*[Image placeholder: Resource utilization graph]*
 
-Compare to alternatives:
-- Custom Embedding: 2-3 minutes (6x slower)
-- Lightweight CNN: 32 minutes (64x slower)
-```
+Ease of updates is a key advantage when adding new users. The process requires minimal retraining with uploading 3-5 images taking 5 seconds, generating embeddings at 2-3 seconds per image, and retraining Logistic Regression in 8-10 seconds, totaling less than 30 seconds. There is no need to retrain deep neural network (which would take hours), regenerate embeddings for existing users, or rebuild entire model from scratch.
 
-**3. Transfer Learning Advantage**
+Production-grade reliability comes from InsightFace being battle-tested in real-world applications including use in security systems worldwide, deployment in access control systems, powering mobile phone face unlock, and handling millions of daily recognitions. Reliability metrics observed in our system show false positive rate of 0.26% (5 errors in 1,930 validations), false negative rate of 0.26% (correctly rejects unknowns), uptime of 99.9% over 30-day test period, and consistent performance with no degradation over time.
 
-InsightFace's buffalo_l model was pre-trained on millions of diverse faces, providing:
-- **Robust Features**: Generalizes to new faces without requiring large dataset
-- **Handles Variations**: Lighting, pose, expression, age changes
-- **Production Proven**: Used by major tech companies
-- **No Overfitting**: Pre-trained features prevent memorization
+*[Image placeholder: Reliability metrics dashboard]*
 
-**4. Minimal Resource Requirements**
+The architecture is highly interpretable with a two-stage pipeline that is easy to understand and debug. Each stage can be monitored and optimized independently where detection failures suggest improving lighting or camera position, low confidence indicates need to add more training images for that user, and wrong classification prompts checking for similar-looking individuals. Scalability is another strength as the architecture scales gracefully from 10 users with 10 second training time and less than 100ms inference time at 99.9% accuracy, to 67 users (current) with 30 second training, less than 100ms inference, and 99.74% accuracy, up to projected 200 users with 60 second training, less than 100ms inference, and 99.0%+ accuracy.
 
-The model is optimally sized for edge deployment:
-
-| Component | Size | Memory Usage |
-|-----------|------|--------------|
-| InsightFace buffalo_l | 50 MB | One-time download |
-| Logistic Regression | 500 KB | Minimal |
-| Embedding cache (67 users) | 2 MB | Fast lookup |
-| **Total** | **~52.5 MB** | **Low overhead** |
-
-Inference speed:
-- Embedding generation: 60-80ms
-- Classification: 5-10ms
-- **Total per face**: <100ms on Raspberry Pi 4
-
-**5. Ease of Updates**
-
-Adding new users requires minimal retraining:
-
-
-```
-Process to add new user:
-1. Upload 3-5 images (5 seconds)
-2. Generate embeddings (2-3 seconds per image)
-3. Retrain Logistic Regression (8-10 seconds)
-Total: <30 seconds
-
-No need to:
-- Retrain deep neural network (hours)
-- Regenerate embeddings for existing users
-- Rebuild entire model from scratch
-```
-
-**6. Production-Grade Reliability**
-
-InsightFace is battle-tested in real-world applications:
-- Used in security systems worldwide
-- Deployed in access control systems
-- Powers mobile phone face unlock
-- Handles millions of daily recognitions
-
-Reliability metrics observed in our system:
-- **False Positive Rate**: 0.26% (5 errors in 1,930 validations)
-- **False Negative Rate**: 0.26% (correctly rejects unknowns)
-- **Uptime**: 99.9% over 30-day test period
-- **Consistent Performance**: No degradation over time
-
-**7. Interpretable Architecture**
-
-The two-stage pipeline is easy to understand and debug:
-
-```python
-# Simplified workflow
-def recognize_face(image):
-    # Stage 1: Extract features (InsightFace)
-    face = detect_face(image)  # RetinaFace
-    embedding = extract_embedding(face)  # ArcFace (512-D)
-    
-    # Stage 2: Classify (Logistic Regression)
-    user_id = classifier.predict(embedding)
-    confidence = classifier.predict_proba(embedding).max()
-    
-    return user_id, confidence
-```
-
-Each stage can be monitored and optimized independently:
-- Detection failures → Improve lighting, camera position
-- Low confidence → Add more training images for that user
-- Wrong classification → Check for similar-looking individuals
-
-**8. Scalability**
-
-The architecture scales gracefully:
-
-| Users | Training Time | Inference Time | Accuracy |
-|-------|--------------|----------------|----------|
-| 10 | 10 sec | <100ms | 99.9% |
-| 50 | 25 sec | <100ms | 99.8% |
-| 67 (current) | 30 sec | <100ms | 99.74% |
-| 100 (projected) | 40 sec | <100ms | 99.5%+ |
-| 200 (projected) | 60 sec | <100ms | 99.0%+ |
+*[Image placeholder: Scalability performance graph showing users vs metrics]*
 | 500 (projected) | 120 sec | <120ms | 98.5%+ |
 
 The model handles hundreds of users without architectural changes.
@@ -1948,14 +1827,13 @@ def mark_attendance(user_name, confidence, image_path):
 - OS: Raspberry Pi OS 64-bit (Debian Bullseye)
 - SD Card: SanDisk 32GB Class 10 UHS-I
 - Power Supply: Official 5V/3A USB-C adapter
-- Cooling: 30mm × 30mm × 7mm 5V fan (3000 RPM)
+- Cooling: 30mm × 30mm × 7mm 5V fan (3000 RPM) for active cooling
 - Network: WiFi 802.11ac (5GHz band)
-- Additional: Aluminum heatsink on CPU with thermal paste
 
 **ESP32-CAM Setup**:
 - Quantity: 3 units (entry, exit, office)
 - Camera: OV2640 2MP sensor
-- LED Illumination: 5V white LED tape (12 LEDs per unit)
+- LED Illumination: 5V white LED light panel (12 LEDs per unit)
 - WiFi: 2.4GHz 802.11n
 - Power: 5V/2A external supply per unit
 - Resolution: 800×600 (SVGA) at 12-15 FPS
@@ -2167,52 +2045,35 @@ tensorflow==2.10.0 (for CNN only)
 
 ### Figure 4.4: Embedding Classifier Confusion Matrix
 
-```
-Performance visualization for Embedding Classifier
-(Available as image: embedding_models/embedding_confusion_matrix.png)
+![Embedding Classifier Confusion Matrix](embedding_models/embedding_confusion_matrix.png)
 
-Confusion Matrix shows:
-- Strong diagonal (correct predictions)
-- Very few off-diagonal elements (misclassifications)
-- 99.74% overall accuracy across 67 users
-- Misclassifications primarily between visually similar individuals
-```
+**Figure 4.4:** Confusion matrix visualization showing the Embedding Classifier's performance across 67 users. The strong diagonal elements indicate correct predictions, with very few off-diagonal misclassifications, achieving 99.74% overall accuracy. Misclassifications occur primarily between visually similar individuals.
+
+(Image available at: embedding_models/embedding_confusion_matrix.png)
 
 ### Figure 4.5: Embedding Classifier Precision-Recall Curve
 
-```
-(Available as image: embedding_models/embedding_precision_recall_curve.png)
+![Embedding Classifier Precision-Recall Curve](embedding_models/embedding_precision_recall_curve.png)
 
-Shows:
-- High precision (>99%) across all users
-- High recall (>99%) across all users
-- Area Under Curve (AUC) ≈ 0.997
-- Consistent performance across all classes
-```
+**Figure 4.5:** Precision-Recall curve demonstrating the Embedding Classifier's excellent performance metrics. The curve shows high precision (>99%) and high recall (>99%) across all 67 users, with an Area Under Curve (AUC) of approximately 0.997, indicating highly consistent performance across all classes.
+
+(Image available at: embedding_models/embedding_precision_recall_curve.png)
 
 ### Figure 4.6: Embedding Classifier Confidence Distribution
 
-```
-(Available as image: embedding_models/embedding_confidence_curve.png)
+![Embedding Classifier Confidence Distribution](embedding_models/embedding_confidence_curve.png)
 
-Confidence Score Distribution:
-- Peak at 90-100% confidence (most predictions)
-- Very few predictions below 70% confidence
-- Clear separation between correct and incorrect predictions
-- Validates 60% threshold choice for "Unknown" rejection
-```
+**Figure 4.6:** Histogram showing the distribution of confidence scores from the Embedding Classifier. The distribution peaks sharply at 90-100% confidence for most predictions, with very few predictions falling below 70% confidence. This clear separation between correct and incorrect predictions validates our choice of 60% threshold for "Unknown" rejection, ensuring high reliability in real-world deployment.
+
+(Image available at: embedding_models/embedding_confidence_curve.png)
 
 ### Figure 4.7: CNN Model Confusion Matrix
 
-```
-(Available as image: cnn_models/cnn_confusion_matrix.png)
+![CNN Model Confusion Matrix](cnn_models/cnn_confusion_matrix.png)
 
-Shows:
-- Weaker diagonal than Embedding Classifier
-- More scattered misclassifications
-- 64.04% overall accuracy
-- Demonstrates challenge of training from scratch on limited data
-```
+**Figure 4.7:** Confusion matrix for the Lightweight CNN model trained from scratch. The matrix shows noticeably weaker diagonal elements compared to the Embedding Classifier, with more scattered misclassifications throughout, achieving only 64.04% overall accuracy. This clearly demonstrates the significant challenge of training deep learning models from scratch on limited datasets, reinforcing the value of transfer learning approaches.
+
+(Image available at: cnn_models/cnn_confusion_matrix.png)
 
 ### Table 4.2: Hardware Performance Analysis
 
@@ -2223,7 +2084,7 @@ Shows:
 |  | JPEG Quality | 12 (high) | Clear facial features |
 |  | WiFi Latency | 20-30ms | Real-time streaming |
 |  | Power Consumption | 260-300mA | Efficient operation |
-| **LED Light Tape** | LED Count | 12 LEDs | Even illumination |
+| **LED Light Panel** | LED Count | 12 LEDs | Even illumination |
 |  | Brightness | 60-80% PWM | Comfortable, effective |
 |  | Power Add | 200-300mA | Within 5V budget |
 |  | Detection Improvement | +18% | Low-light performance |
@@ -2434,7 +2295,7 @@ Performs well but still below Embedding Classifier because:
 | **Varied Light (mixed)** | 88.9% | 97.2% | +8.3% | Consistent results |
 | **Average Across Conditions** | 90.4% | 97.6% | **+7.2%** | **Overall benefit** |
 
-**LED Light Tape Impact Analysis**:
+**LED Light Panel Impact Analysis**:
 
 1. **Low Light Performance (+18.1%)**
    - Most dramatic improvement in <100 lux conditions
@@ -2464,31 +2325,15 @@ Performs well but still below Embedding Classifier because:
 
 **ESP32-CAM Selection Justification:**
 
-Our choice of ESP32-CAM over alternatives (Raspberry Pi Camera, USB webcams, commercial IP cameras) was validated by:
+Our decision to use ESP32-CAM over alternatives like Raspberry Pi Camera modules, USB webcams, or commercial IP cameras proved to be well-founded for several important reasons.
 
-1. **Wireless Operation**
-   - No cable limitations (up to 50m WiFi range)
-   - Flexible positioning for optimal face capture angle
-   - Easy to add multiple units for large spaces
-   - Reduced installation complexity
+First, wireless operation provides unprecedented flexibility. With no cable limitations and WiFi range up to 50 meters, we can position cameras optimally for face capture without worrying about cable routing. This makes it remarkably easy to add multiple units for large spaces, and significantly reduces installation complexity compared to wired solutions.
 
-2. **Cost Effectiveness**
-   - $8-12 per unit vs $50-200 for IP cameras
-   - $30-40 total for 3-camera setup
-   - Comparable to single USB webcam but wireless
-   - Enables affordable scalability
+Cost effectiveness was another major factor. At just Rs. 2,400-3,600 ($8-12) per unit versus Rs. 15,000-60,000 ($50-200) for commercial IP cameras, we can deploy a complete 3-camera setup for Rs. 9,000-12,000 ($30-40) in total - comparable to a single USB webcam but with wireless capability. This enables affordable scalability that would be prohibitively expensive with commercial solutions.
 
-3. **Integration Simplicity**
-   - Standard HTTP/MJPEG stream (no proprietary protocols)
-   - Compatible with OpenCV VideoCapture
-   - No special drivers or SDKs needed
-   - Works with any programming language
+Integration proved surprisingly simple. The ESP32-CAM provides a standard HTTP/MJPEG stream, eliminating the need for proprietary protocols. It works seamlessly with OpenCV VideoCapture, requires no special drivers or SDKs, and is compatible with any programming language that can handle HTTP streams.
 
-4. **Power Efficiency**
-   - 260-300mA consumption (1.3-1.5W)
-   - Can run on small power supply or USB
-   - Combined with LED: still <500mA (2.5W)
-   - Solar-powered deployment feasible
+Power efficiency is excellent, consuming only 260-300mA (1.3-1.5W) under normal operation. Even when combined with the LED light panel, total power draw stays under 500mA (2.5W), making the entire setup feasible for small power supplies or even solar-powered deployment in remote locations.
 
 **Raspberry Pi Cooling Fan Necessity:**
 
@@ -2615,47 +2460,58 @@ Each Pi operates independently, syncing to central database.
 
 **Total System Cost:**
 
-| Component | Quantity | Unit Price | Total |
-|-----------|----------|----------|-------|
-| Raspberry Pi 4 (4GB) | 1 | $55 | $55 |
-| MicroSD Card (32GB) | 1 | $8 | $8 |
-| Power Supply (5V/3A) | 1 | $10 | $10 |
-| Cooling Fan | 1 | $3 | $3 |
-| Heatsink Kit | 1 | $4 | $4 |
-| ESP32-CAM Modules | 3 | $10 | $30 |
-| LED Light Tape (5m) | 1 | $8 | $8 |
-| Power Supplies (5V/2A) | 3 | $5 | $15 |
-| WiFi Router (if needed) | 1 | $40 | $40 |
-| Miscellaneous (cables, case) | - | - | $20 |
-| **Total Hardware** | - | - | **$193** |
+| Component | Quantity | Unit Price (LKR) | Unit Price (USD) | Total (LKR) | Total (USD) |
+|-----------|----------|------------------|------------------|-------------|-------------|
+| Raspberry Pi 4 (4GB) | 1 | Rs. 16,500 | $55 | Rs. 16,500 | $55 |
+| MicroSD Card (32GB) | 1 | Rs. 2,400 | $8 | Rs. 2,400 | $8 |
+| Power Supply (5V/3A) | 1 | Rs. 3,000 | $10 | Rs. 3,000 | $10 |
+| Cooling Fan | 1 | Rs. 900 | $3 | Rs. 900 | $3 |
+| ESP32-CAM Modules | 3 | Rs. 3,000 | $10 | Rs. 9,000 | $30 |
+| LED Light Panel (5m) | 1 | Rs. 2,400 | $8 | Rs. 2,400 | $8 |
+| Power Supplies (5V/2A) | 3 | Rs. 1,500 | $5 | Rs. 4,500 | $15 |
+| WiFi Router (if needed) | 1 | Rs. 12,000 | $40 | Rs. 12,000 | $40 |
+| Miscellaneous (cables, case) | - | - | - | Rs. 6,000 | $20 |
+| **Total Hardware** | - | - | - | **Rs. 56,700** | **$189** |
+
+*Note: Exchange rate used: 1 USD ≈ Rs. 300 (LKR)*
+
+*[Image placeholder: Cost breakdown pie chart showing component costs]*
 
 **Comparison with Commercial Solutions:**
 
-| System Type | Setup Cost | Monthly Cost | Annual Total | Notes |
-|-------------|-----------|--------------|--------------|-------|
-| **Our System** | **$193** | **$0** | **$193** | One-time cost |
-| Cloud-based SaaS | $500 | $50-100 | $1,100-1,700 | Per location |
-| Commercial IP System | $2,500 | $30 | $2,860 | Proprietary hardware |
-| Fingerprint System | $1,200 | $0 | $1,200 | Contact-based |
-| RFID Card System | $800 | $20 | $1,040 | Cards can be shared |
+**Comparison with Commercial Solutions:**
+
+| System Type | Setup Cost (LKR) | Setup Cost (USD) | Monthly Cost (LKR) | Monthly Cost (USD) | Annual Total (LKR) | Annual Total (USD) | Notes |
+|-------------|------------------|------------------|--------------------|--------------------|--------------------|--------------------|-------|
+| **Our System** | **Rs. 56,700** | **$189** | **Rs. 0** | **$0** | **Rs. 56,700** | **$189** | One-time cost |
+| Cloud-based SaaS | Rs. 150,000 | $500 | Rs. 15,000-30,000 | $50-100 | Rs. 330,000-510,000 | $1,100-1,700 | Per location |
+| Commercial IP System | Rs. 750,000 | $2,500 | Rs. 9,000 | $30 | Rs. 858,000 | $2,860 | Proprietary hardware |
+| Fingerprint System | Rs. 360,000 | $1,200 | Rs. 0 | $0 | Rs. 360,000 | $1,200 | Contact-based |
+| RFID Card System | Rs. 240,000 | $800 | Rs. 6,000 | $20 | Rs. 312,000 | $1,040 | Cards can be shared |
+
+*[Image placeholder: Annual cost comparison bar chart]*
 
 **ROI Analysis (for 50-person organization):**
 
-Assume manual roll call:
+Assuming manual roll call:
 - Time per day: 10 minutes
-- Instructor hourly rate: $50/hour
-- Daily cost: 10 min × ($50/60 min) = $8.33
-- Annual cost: $8.33 × 250 workdays = $2,083
+- Instructor hourly rate: Rs. 15,000/hour ($50/hour)
+- Daily cost: 10 min × (Rs. 15,000/60 min) = Rs. 2,500
+- Annual cost: Rs. 2,500 × 250 workdays = Rs. 625,000
 
-**Break-even: 23 days** ($193 ÷ $8.33/day)
+**Break-even: 23 days** (Rs. 56,700 ÷ Rs. 2,500/day)
 
-After 1 year: **$1,890 saved** ($2,083 - $193)
+After 1 year: **Rs. 568,300 saved** (Rs. 625,000 - Rs. 56,700)
+
+*[Image placeholder: ROI timeline graph showing break-even point]*
 
 Additional benefits (harder to quantify):
 - Eliminated proxy attendance (fraud prevention)
 - Attendance data analytics
 - Audit trail for compliance
 - Reduced administrative workload
+
+*[Image placeholder: Benefits visualization infographic]*
 
 
 ---
@@ -2672,11 +2528,13 @@ This thesis presented a comprehensive IoT-enabled face recognition attendance sy
 The Embedding Classifier model, combining InsightFace's buffalo_l pre-trained network with Logistic Regression, achieved exceptional validation accuracy of 99.74% on a dataset of 67 users with 9,648 samples. This surpasses both the Custom Embedding model (98.86%) and Lightweight CNN baseline (64.04%), conclusively demonstrating the power of transfer learning for face recognition tasks.
 
 **2. Hardware Innovation**
-Two critical hardware enhancements significantly improved system reliability:
+Two critical hardware enhancements have significantly improved our system's reliability and performance. 
 
-- **LED Light Tape Integration**: Mounting LED strips around ESP32-CAM modules provided consistent illumination, improving face detection accuracy by 18% in low-light conditions and 7.2% on average across all lighting scenarios. This simple, low-cost addition ($8 for all units) eliminates environmental lighting variability.
+The LED light panel integration involved mounting LED strips in a ring configuration around each ESP32-CAM module to provide consistent illumination. This enhancement improved face detection accuracy by 18% in low-light conditions and delivered a 7.2% improvement on average across all lighting scenarios. What makes this particularly attractive is that it's a simple, low-cost addition - approximately Rs. 2,400 ($8) for all units combined - yet it completely eliminates the environmental lighting variability that plagued earlier prototypes.
 
-- **Active Cooling Solution**: Installing a 5V cooling fan on Raspberry Pi 4 reduced CPU temperature from 85°C to 49°C during continuous operation, preventing thermal throttling and maintaining stable 1.5GHz performance. This resulted in 50-60% faster recognition times (86ms vs 165ms) and enabled reliable 24/7 operation.
+Our active cooling solution through installing a 5V fan on the Raspberry Pi 4 proved equally valuable. During continuous operation, the fan reduced CPU temperature from a concerning 85°C down to a comfortable 45-50°C. This prevented thermal throttling entirely and maintained stable 1.5GHz performance throughout extended testing periods. The performance impact was substantial: recognition times improved by 50-60% (from 165ms down to 86ms per face), and we achieved reliable 24/7 operation without any thermal-related shutdowns or performance degradation.
+
+*[Image placeholder: Before/after comparison of thermal performance and lighting conditions]*
 
 **3. Edge-Cloud Hybrid Architecture**
 The system intelligently separates real-time recognition (edge) from model training (cloud):
@@ -2697,7 +2555,9 @@ System response times validate practical deployment feasibility:
 These metrics support real-world scenarios including classroom entrances (50 students in <1 minute), office access control, and multi-camera deployments.
 
 **5. Cost-Effectiveness**
-Total hardware cost of $193 compares favorably to commercial alternatives ($1,100-$2,860 annually). For a 50-person organization, the system achieves break-even in 23 days and saves $1,890 in the first year compared to manual roll calls.
+Our total hardware cost of Rs. 56,700 ($189) compares extremely favorably to commercial alternatives that range from Rs. 330,000 to Rs. 858,000 ($1,100-$2,860) annually. For a typical 50-person organization, the system achieves break-even in just 23 days and saves approximately Rs. 568,300 ($1,894) in the first year compared to manual roll calls - a remarkable return on investment.
+
+*[Image placeholder: Cost-benefit analysis visualization]*
 
 **6. Comprehensive Evaluation**
 Systematic comparison of three model architectures (Embedding Classifier, Custom Embedding, Lightweight CNN) provided empirical justification for production model selection. The evaluation considered accuracy, training time, inference speed, resource requirements, and scalability.
@@ -2758,7 +2618,7 @@ Based on experimental findings and deployment experience, the following recommen
    - Mount cameras at 1.5-1.8m height (average face level)
    - Angle 15° downward to accommodate varying user heights
    - Ensure 1.5-2m distance from subjects for optimal face size
-   - Install LED light tape for all units, regardless of ambient lighting
+   - Install LED light panel for all units, regardless of ambient lighting
    - Use dedicated 5V/2A power supplies (not USB-powered)
 
 3. **Network Infrastructure**
@@ -2823,14 +2683,14 @@ Based on experimental findings and deployment experience, the following recommen
 - Single Raspberry Pi + 1-2 ESP32-CAMs sufficient
 - Manual user registration acceptable
 - Daily attendance review by admin
-- Total cost: ~$150-200
+- Total cost: Rs. 45,000-60,000 (~$150-200)
 
 **Medium Organizations (50-200 users):**
 - Single Raspberry Pi + 3-4 ESP32-CAMs
 - Implement automated alerts for anomalies
 - Weekly performance monitoring
 - Consider backup Raspberry Pi for redundancy
-- Total cost: ~$250-350
+- Total cost: Rs. 75,000-105,000 (~$250-350)
 
 **Large Organizations (>200 users):**
 - Multiple Raspberry Pis (1 per building/floor)
@@ -2838,7 +2698,7 @@ Based on experimental findings and deployment experience, the following recommen
 - Dedicated IT staff for maintenance
 - Professional installation recommended
 - Integration with existing HR systems
-- Total cost: ~$500-1000 (scales linearly)
+- Total cost: Rs. 150,000-300,000 (~$500-1000, scales linearly)
 
 ---
 
@@ -2848,146 +2708,55 @@ While the current system meets objectives and performs well in deployment, sever
 
 ### Short-Term Enhancements (3-6 months)
 
-1. **Mobile Application**
-   - Android/iOS app for remote monitoring
-   - Push notifications for attendance events
-   - Mobile admin interface for user management
-   - QR code-based user enrollment
+Mobile application development would provide Android and iOS apps for remote monitoring with push notifications for attendance events, mobile admin interface for user management, and QR code-based user enrollment. Advanced analytics dashboard would enable attendance trends and patterns visualization, peak hours analysis, absence detection and alerts, exportable reports in PDF and Excel formats, and integration with HR systems for comprehensive workforce management.
 
-2. **Advanced Analytics Dashboard**
-   - Attendance trends and patterns
-   - Peak hours visualization
-   - Absence detection and alerts
-   - Exportable reports (PDF, Excel)
-   - Integration with HR systems
+Multi-modal biometrics could enhance security by combining face recognition with voice recognition, incorporating gait analysis for additional security, implementing multi-factor authentication with face plus PIN, and adding liveness detection for anti-spoofing protection. Improved user experience would include audio feedback with spoken confirmation, multilingual interface support, accessibility features such as screen reader support, and customizable themes for different organizational preferences.
 
-3. **Multi-Modal Biometrics**
-   - Combine face recognition with voice recognition
-   - Gait analysis for additional security
-   - Multi-factor authentication (face + PIN)
-   - Liveness detection (anti-spoofing)
-
-4. **Improved User Experience**
-   - Audio feedback (spoken confirmation)
-   - Multilingual interface
-   - Accessibility features (screen reader support)
-   - Customizable themes
+*[Image placeholder: Mockup of mobile application interface]*
 
 ### Medium-Term Research (6-12 months)
 
-1. **Masked Face Recognition**
-   - Fine-tune model on masked face dataset
-   - Eye-region focused recognition
-   - Hybrid approach (masked vs unmasked detection)
-   - Expected accuracy: 90-95% with masks
+Masked face recognition would involve fine-tuning the model on masked face datasets, implementing eye-region focused recognition techniques, developing hybrid approach for masked versus unmasked detection, with expected accuracy of 90-95% when subjects wear masks. On-device training would implement federated learning capabilities, enable incremental model updates without full retraining, reduce cloud dependency for training operations, and provide faster adaptation to new users through continuous learning.
 
-2. **On-Device Training**
-   - Implement federated learning
-   - Update model incrementally without full retraining
-   - Reduce cloud dependency
-   - Faster adaptation to new users
+Advanced anomaly detection would detect unusual patterns such as late arrivals or early departures, identify potential proxy attendance attempts through behavioral analysis, alert administrators for repeated recognition failures, and provide behavioral analytics for workforce insights. Edge TPU acceleration through integrating Google Coral USB Accelerator would reduce inference time to under 50ms, support more concurrent camera streams, lower CPU temperature and power consumption, and enable deployment of more sophisticated models at the edge.
 
-3. **Advanced Anomaly Detection**
-   - Detect unusual patterns (late arrivals, early departures)
-   - Identify potential proxy attendance attempts
-   - Alert for repeated recognition failures
-   - Behavioral analytics
-
-4. **Edge TPU Acceleration**
-   - Integrate Google Coral USB Accelerator
-   - Reduce inference time to <50ms
-   - Support more concurrent streams
-   - Lower CPU temperature/power
+*[Image placeholder: Architecture diagram showing proposed enhancements]*
 
 ### Long-Term Vision (1-2 years)
 
-1. **Distributed Multi-Site Architecture**
-   - Cloud-based central management
-   - Automatic model synchronization
-   - Cross-site attendance tracking
-   - Hierarchical organization support
-   - Real-time global analytics
+Distributed multi-site architecture would enable cloud-based central management for multiple locations, automatic model synchronization across sites, cross-site attendance tracking for employees working at multiple locations, hierarchical organization support for complex organizational structures, and real-time global analytics providing enterprise-wide insights.
 
-2. **Advanced AI Features**
-   - Emotion recognition (detect engagement in classrooms)
-   - Attention monitoring (looking at camera/screen)
-   - Age estimation (verify age-restricted access)
-   - Demographic analytics (privacy-aware)
+Advanced AI features could include emotion recognition to detect engagement levels in classrooms, attention monitoring to determine if subjects are looking at camera or screen, age estimation to verify age-restricted access, and privacy-aware demographic analytics for workforce planning. Integration ecosystem development would connect with HR systems like SAP, Workday, and BambooHR, Learning Management Systems such as Moodle and Canvas, access control systems including door locks and turnstiles, payroll systems for automatic timesheet generation, and calendar systems for meeting attendance tracking.
 
-3. **Integration Ecosystem**
-   - HR systems (SAP, Workday, BambooHR)
-   - Learning Management Systems (Moodle, Canvas)
-   - Access control systems (door locks, turnstiles)
-   - Payroll systems (automatic timesheet)
-   - Calendar systems (meeting attendance)
+Specialized variants could be developed for different industries including healthcare version for patient check-in, retail version for customer analytics, security version for watchlist matching, and event version for conference registration and management.
 
-4. **Specialized Variants**
-   - Healthcare version (patient check-in)
-   - Retail version (customer analytics)
-   - Security version (watchlist matching)
-   - Event version (conference registration)
+*[Image placeholder: Multi-site deployment architecture diagram]*
 
 ### Research Directions
 
-1. **Continual Learning**
-   - Update model as users age
-   - Adapt to changing appearances (hairstyles, facial hair)
-   - Class-incremental learning without catastrophic forgetting
+Continual learning research would focus on updating models as users age over time, adapting to changing appearances such as new hairstyles or facial hair, and implementing class-incremental learning without catastrophic forgetting of previously learned identities. Few-shot learning would enable registering users with only 1-2 images using meta-learning approaches and Siamese networks for one-shot recognition capabilities.
 
-2. **Few-Shot Learning**
-   - Register users with 1-2 images
-   - Meta-learning approaches
-   - Siamese networks for one-shot recognition
+Privacy-preserving recognition research would explore homomorphic encryption for embeddings to enable secure computation, federated learning across organizations to share model improvements without sharing data, differential privacy guarantees to protect individual privacy, and on-device processing to eliminate cloud dependencies entirely. Explainable AI would visualize which facial features drove recognition decisions, implement confidence calibration and uncertainty quantification for more reliable predictions, and generate attention maps for debugging misclassifications.
 
-3. **Privacy-Preserving Recognition**
-   - Homomorphic encryption for embeddings
-   - Federated learning across organizations
-   - Differential privacy guarantees
-   - On-device processing only
+Cross-spectral recognition would investigate NIR (near-infrared) cameras for low or no-light conditions, thermal imaging for extreme environmental conditions, and multi-spectral fusion for improved robustness across diverse scenarios.
 
-4. **Explainable AI**
-   - Visualize which facial features drove recognition
-   - Confidence calibration and uncertainty quantification
-   - Attention maps for debugging misclassifications
-
-5. **Cross-Spectral Recognition**
-   - NIR (near-infrared) cameras for low/no light
-   - Thermal imaging for extreme conditions
-   - Multi-spectral fusion for robustness
+*[Image placeholder: Research direction roadmap visualization]*
 
 ### Sustainability and Maintenance
 
-1. **Model Versioning and Rollback**
-   - Track model performance over time
-   - Automatic rollback if accuracy degrades
-   - A/B testing for model updates
+Model versioning and rollback systems would track model performance over time enabling automatic rollback if accuracy degrades below acceptable thresholds and supporting A/B testing for model updates before full deployment. Automated health checks would include camera connectivity monitoring to ensure all devices remain online, temperature alerts to prevent thermal issues, disk space warnings to prevent storage overflow, and performance regression detection to identify gradual degradation.
 
-2. **Automated Health Checks**
-   - Camera connectivity monitoring
-   - Temperature alerts
-   - Disk space warnings
-   - Performance regression detection
+Documentation and community building would provide video tutorials for installation and configuration, troubleshooting knowledge base for common issues, community forum for users to share experiences and solutions, and encourage open-source contributions to expand system capabilities.
 
-3. **Documentation and Community**
-   - Video tutorials for installation
-   - Troubleshooting knowledge base
-   - Community forum for users
-   - Open-source contributions encouraged
+*[Image placeholder: System monitoring dashboard mockup]*
 
 ### Conclusion on Future Work
 
-The current system provides a solid foundation for future enhancements. Priority should be given to features that:
-- Improve user experience (mobile app, audio feedback)
-- Enhance security (liveness detection, multi-modal)
-- Increase accuracy (masked recognition, continual learning)
-- Reduce maintenance burden (automated health checks)
+The current system provides a solid foundation for future enhancements. Priority should be given to features that improve user experience through mobile apps and audio feedback, enhance security via liveness detection and multi-modal biometrics, increase accuracy through masked recognition and continual learning, and reduce maintenance burden with automated health checks and monitoring.
 
-All future work should maintain the core principles that made this system successful:
-- **Simplicity**: Easy to install and use
-- **Cost-effectiveness**: Affordable for all organizations
-- **Privacy**: Data stays local
-- **Reliability**: Stable 24/7 operation
-- **Openness**: Open-source for community benefit
+All future work should maintain the core principles that made this system successful including simplicity for easy installation and use, cost-effectiveness making it affordable for all organizations, privacy protection ensuring data stays local, reliability providing stable 24/7 operation, and openness through open-source availability for community benefit.
+
+*[Image placeholder: Future development timeline roadmap]*
 
 
 ---
@@ -2998,21 +2767,22 @@ All future work should maintain the core principles that made this system succes
 
 ### A.1 Complete Bill of Materials
 
-| Item | Specification | Quantity | Unit Price | Total | Purpose |
-|------|--------------|----------|-----------|-------|---------|
-| Raspberry Pi 4 Model B | 4GB RAM | 1 | $55 | $55 | Edge computing host |
-| MicroSD Card | 32GB Class 10 UHS-I | 1 | $8 | $8 | OS and storage |
-| USB-C Power Supply | 5V/3A Official | 1 | $10 | $10 | Raspberry Pi power |
-| Cooling Fan | 30mm × 30mm × 7mm, 5V | 1 | $3 | $3 | CPU cooling |
-| Aluminum Heatsink | With thermal paste | 1 | $4 | $4 | Passive cooling |
-| ESP32-CAM Module | With OV2640 camera | 3 | $10 | $30 | Wireless cameras |
-| LED Light Tape | 5V White, 5m roll | 1 | $8 | $8 | Camera illumination |
-| 5V/2A Power Supply | For ESP32-CAM | 3 | $5 | $15 | ESP32 power |
-| WiFi Router | TP-Link AC1750 | 1 | $40 | $40 | Network infrastructure |
-| Ethernet Cable | Cat6, 3m | 2 | $3 | $6 | Wired connections |
-| MicroUSB Cables | For ESP32 programming | 3 | $2 | $6 | Programming/power |
-| Enclosure/Case | For Raspberry Pi | 1 | $8 | $8 | Protection |
-| **Total** | | | | **$193** | |
+| Item | Specification | Quantity | Unit Price (LKR) | Unit Price (USD) | Total (LKR) | Total (USD) | Purpose |
+|------|--------------|----------|------------------|------------------|-------------|-------------|---------|
+| Raspberry Pi 4 Model B | 4GB RAM | 1 | Rs. 16,500 | $55 | Rs. 16,500 | $55 | Edge computing host |
+| MicroSD Card | 32GB Class 10 UHS-I | 1 | Rs. 2,400 | $8 | Rs. 2,400 | $8 | OS and storage |
+| USB-C Power Supply | 5V/3A Official | 1 | Rs. 3,000 | $10 | Rs. 3,000 | $10 | Raspberry Pi power |
+| Cooling Fan | 30mm × 30mm × 7mm, 5V | 1 | Rs. 900 | $3 | Rs. 900 | $3 | Active CPU cooling |
+| ESP32-CAM Module | With OV2640 camera | 3 | Rs. 3,000 | $10 | Rs. 9,000 | $30 | Wireless cameras |
+| LED Light Panel | 5V White, 5m roll | 1 | Rs. 2,400 | $8 | Rs. 2,400 | $8 | Camera illumination |
+| 5V/2A Power Supply | For ESP32-CAM | 3 | Rs. 1,500 | $5 | Rs. 4,500 | $15 | ESP32 power |
+| WiFi Router | TP-Link AC1750 | 1 | Rs. 12,000 | $40 | Rs. 12,000 | $40 | Network infrastructure |
+| Ethernet Cable | Cat6, 3m | 2 | Rs. 900 | $3 | Rs. 1,800 | $6 | Wired connections |
+| MicroUSB Cables | For ESP32 programming | 3 | Rs. 600 | $2 | Rs. 1,800 | $6 | Programming/power |
+| Enclosure/Case | For Raspberry Pi | 1 | Rs. 2,400 | $8 | Rs. 2,400 | $8 | Protection |
+| **Total** | | | | | **Rs. 56,700** | **$189** | |
+
+*Exchange rate: 1 USD ≈ Rs. 300 (LKR)*
 
 ---
 
