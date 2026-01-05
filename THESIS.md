@@ -605,7 +605,7 @@ void setup() {
 
 ### Figure 3.3: ESP32-CAM with LED Light Panel Setup
 
-*[Image: Top view diagram of ESP32-CAM with circular LED panel arrangement]*
+**Note:** The ASCII diagram below illustrates the LED panel arrangement. Physical photos can be captured during deployment.
 
 ```
                     Top View
@@ -646,7 +646,7 @@ void setup() {
               ╲─────────╱
 ```
 
-*[Image: Side view photo showing LED panel illumination pattern]*
+**Note:** Side view photos showing LED panel illumination pattern can be captured during physical deployment.
 
 **Benefits Observed**:
 
@@ -2488,97 +2488,37 @@ Based on experimental findings and deployment experience, the following recommen
 
 ### Hardware Recommendations
 
-1. **Raspberry Pi Configuration**
-   - Use Raspberry Pi 4 with 4GB RAM minimum (8GB for >200 users)
-   - Install active cooling fan (mandatory, not optional)
-   - Use industrial-grade microSD card (A1/A2 rated)
-   - Consider UPS for continuous operation in critical environments
+For Raspberry Pi Configuration, organizations should use Raspberry Pi 4 with a minimum of 4GB RAM, upgrading to 8GB for deployments exceeding 200 users. Installing an active cooling fan is mandatory rather than optional to ensure consistent performance. Industrial-grade microSD cards with A1 or A2 rating should be used for reliability and longevity. For critical environments requiring continuous operation, consider adding an uninterruptible power supply (UPS) to prevent data loss during power outages.
 
-2. **ESP32-CAM Deployment**
-   - Mount cameras at 1.5-1.8m height (average face level)
-   - Angle 15° downward to accommodate varying user heights
-   - Ensure 1.5-2m distance from subjects for optimal face size
-   - Install LED light panel for all units, regardless of ambient lighting
-   - Use dedicated 5V/2A power supplies (not USB-powered)
+For ESP32-CAM Deployment, cameras should be mounted at a height of 1.5-1.8 meters to align with average face level. Angle the cameras 15 degrees downward to accommodate varying user heights effectively. Ensure a distance of 1.5-2 meters between cameras and subjects for optimal face size capture. Install LED light panels for all units regardless of ambient lighting conditions to ensure consistent image quality. Use dedicated 5V/2A power supplies rather than USB-powered solutions to ensure stable operation.
 
-3. **Network Infrastructure**
-   - Assign static IP addresses to all ESP32-CAMs
-   - Use 5GHz WiFi for Raspberry Pi (reduced congestion)
-   - Keep ESP32-CAMs on 2.4GHz (better range)
-   - Ensure 50+ Mbps bandwidth if using multiple cameras
+For Network Infrastructure, assign static IP addresses to all ESP32-CAM devices to prevent connectivity issues. Use 5GHz WiFi for the Raspberry Pi to reduce congestion and improve performance. Keep ESP32-CAMs on 2.4GHz networks for better range and wall penetration. Ensure bandwidth of at least 50 Mbps when using multiple cameras simultaneously to prevent stream degradation.
 
 ### Software Recommendations
 
-1. **Model Selection**
-   - Use Embedding Classifier (InsightFace + Logistic Regression) for production
-   - Do NOT use CNN model (experimental baseline only)
-   - Set confidence threshold to 60-70% for optimal accuracy vs rejection rate
-   - Retrain monthly if user demographics change significantly
+For Model Selection, use the Embedding Classifier combining InsightFace with Logistic Regression for production deployments. Do not use the CNN model as it serves only as an experimental baseline. Set the confidence threshold to 60-70% for optimal balance between accuracy and rejection rate. Retrain the model monthly if user demographics change significantly to maintain accuracy.
 
-2. **User Registration**
-   - Collect 5-7 images per user minimum
-   - Include variety: different expressions, slight angle variations
-   - Avoid images with occlusions (masks, hats, sunglasses)
-   - Capture in similar lighting to deployment environment
-   - Update user images if appearance changes (hairstyle, glasses, aging)
+For User Registration, collect a minimum of 5-7 images per user to ensure robust recognition. Include variety in the captured images with different expressions and slight angle variations. Avoid images with occlusions such as masks, hats, or sunglasses during initial registration. Capture images in lighting conditions similar to the deployment environment for better matching. Update user images when appearance changes significantly due to hairstyle modifications, glasses addition or removal, or aging.
 
-3. **System Maintenance**
-   - Monitor Raspberry Pi temperature weekly
-   - Backup database folder monthly (to external drive + cloud)
-   - Update software dependencies quarterly
-   - Review attendance logs for anomalies
-   - Clean camera lenses monthly
+For System Maintenance, monitor Raspberry Pi temperature on a weekly basis to detect cooling issues early. Backup the database folder monthly to both external drive and cloud storage for redundancy. Update software dependencies quarterly to maintain security and compatibility. Review attendance logs regularly for anomalies or unusual patterns. Clean camera lenses monthly to prevent image quality degradation.
 
 ### Deployment Best Practices
 
-1. **Pilot Testing**
-   - Start with 1 camera and 20-30 users
-   - Run parallel with existing system for 2 weeks
-   - Collect user feedback and adjust thresholds
-   - Scale gradually after validation
+For Pilot Testing, start with a single camera and 20-30 users to validate the system. Run the new system in parallel with the existing system for 2 weeks to ensure reliability. Collect user feedback during the pilot phase and adjust thresholds accordingly. Scale gradually after successful validation rather than deploying system-wide immediately.
 
-2. **User Training**
-   - Brief users on positioning (face camera, 1-2m distance)
-   - Explain that recognition takes <1 second
-   - Demonstrate proper lighting conditions
-   - Provide fallback mechanism (manual entry for failures)
+For User Training, brief users on proper positioning including facing the camera at 1-2 meter distance. Explain that recognition takes less than 1 second to set appropriate expectations. Demonstrate proper lighting conditions for optimal recognition. Provide a fallback mechanism such as manual entry for cases where recognition fails.
 
-3. **Privacy and Compliance**
-   - Obtain user consent for face data collection
-   - Clearly communicate data storage (local, not cloud)
-   - Provide ability to delete user data on request
-   - Implement audit logs (who accessed system, when)
-   - Comply with local biometric data regulations (GDPR, CCPA, etc.)
+For Privacy and Compliance, obtain explicit user consent for face data collection before deployment. Clearly communicate that data storage is local and not cloud-based. Provide users with the ability to delete their data upon request. Implement comprehensive audit logs tracking who accessed the system and when. Comply with local biometric data regulations such as GDPR, CCPA, and others applicable to your jurisdiction.
 
-4. **Security Considerations**
-   - Change default Raspberry Pi password immediately
-   - Enable HTTPS for web interface (use Let's Encrypt)
-   - Implement user authentication (not publicly accessible)
-   - Encrypt sensitive data at rest
-   - Regular security updates
+For Security Considerations, change the default Raspberry Pi password immediately upon installation. Enable HTTPS for the web interface using services like Let's Encrypt. Implement user authentication to ensure the system is not publicly accessible. Encrypt sensitive data at rest to protect against unauthorized access. Apply regular security updates to address vulnerabilities promptly.
 
 ### Organization-Specific Recommendations
 
-**Small Organizations (<50 users):**
-- Single Raspberry Pi + 1-2 ESP32-CAMs sufficient
-- Manual user registration acceptable
-- Daily attendance review by admin
-- Total cost: Rs. 45,000-60,000 (~$150-200)
+For Small Organizations with fewer than 50 users, a single Raspberry Pi combined with 1-2 ESP32-CAMs is sufficient. Manual user registration is acceptable for this scale. Daily attendance review by an administrator provides adequate oversight. The total cost ranges from Rs. 45,000 to Rs. 60,000 (approximately $150-200).
 
-**Medium Organizations (50-200 users):**
-- Single Raspberry Pi + 3-4 ESP32-CAMs
-- Implement automated alerts for anomalies
-- Weekly performance monitoring
-- Consider backup Raspberry Pi for redundancy
-- Total cost: Rs. 75,000-105,000 (~$250-350)
+For Medium Organizations with 50-200 users, deploy a single Raspberry Pi with 3-4 ESP32-CAMs for broader coverage. Implement automated alerts for anomalies to reduce manual oversight. Conduct weekly performance monitoring to ensure system health. Consider a backup Raspberry Pi for redundancy in critical applications. The total cost ranges from Rs. 75,000 to Rs. 105,000 (approximately $250-350).
 
-**Large Organizations (>200 users):**
-- Multiple Raspberry Pis (1 per building/floor)
-- Centralized database with synchronization
-- Dedicated IT staff for maintenance
-- Professional installation recommended
-- Integration with existing HR systems
-- Total cost: Rs. 150,000-300,000 (~$500-1000, scales linearly)
+For Large Organizations with more than 200 users, deploy multiple Raspberry Pi units with one per building or floor for distributed processing. Implement centralized database with synchronization across all units. Allocate dedicated IT staff for maintenance and troubleshooting. Professional installation is recommended for complex deployments. Integrate with existing HR systems for seamless workflow. The total cost ranges from Rs. 150,000 to Rs. 300,000 (approximately $500-1000), scaling linearly with organization size.
 
 ---
 
@@ -2592,7 +2532,7 @@ Mobile application development would provide Android and iOS apps for remote mon
 
 Multi-modal biometrics could enhance security by combining face recognition with voice recognition, incorporating gait analysis for additional security, implementing multi-factor authentication with face plus PIN, and adding liveness detection for anti-spoofing protection. Improved user experience would include audio feedback with spoken confirmation, multilingual interface support, accessibility features such as screen reader support, and customizable themes for different organizational preferences.
 
-*[Image placeholder: Mockup of mobile application interface]*
+**Note:** Mockups of mobile application interfaces can be created using design tools for presentation purposes.
 
 ### Medium-Term Research (6-12 months)
 
@@ -2600,7 +2540,7 @@ Masked face recognition would involve fine-tuning the model on masked face datas
 
 Advanced anomaly detection would detect unusual patterns such as late arrivals or early departures, identify potential proxy attendance attempts through behavioral analysis, alert administrators for repeated recognition failures, and provide behavioral analytics for workforce insights. Edge TPU acceleration through integrating Google Coral USB Accelerator would reduce inference time to under 50ms, support more concurrent camera streams, lower CPU temperature and power consumption, and enable deployment of more sophisticated models at the edge.
 
-*[Image placeholder: Architecture diagram showing proposed enhancements]*
+**Note:** Architecture diagrams showing proposed enhancements can be created as the features are designed and implemented.
 
 ### Long-Term Vision (1-2 years)
 
@@ -2610,7 +2550,7 @@ Advanced AI features could include emotion recognition to detect engagement leve
 
 Specialized variants could be developed for different industries including healthcare version for patient check-in, retail version for customer analytics, security version for watchlist matching, and event version for conference registration and management.
 
-*[Image placeholder: Multi-site deployment architecture diagram]*
+**Note:** Multi-site deployment architecture diagrams can be designed when implementing distributed systems.
 
 ### Research Directions
 
@@ -2620,7 +2560,7 @@ Privacy-preserving recognition research would explore homomorphic encryption for
 
 Cross-spectral recognition would investigate NIR (near-infrared) cameras for low or no-light conditions, thermal imaging for extreme environmental conditions, and multi-spectral fusion for improved robustness across diverse scenarios.
 
-*[Image placeholder: Research direction roadmap visualization]*
+**Note:** Research direction roadmap visualizations can be created to illustrate the timeline and dependencies of future research initiatives.
 
 ### Sustainability and Maintenance
 
@@ -2628,7 +2568,7 @@ Model versioning and rollback systems would track model performance over time en
 
 Documentation and community building would provide video tutorials for installation and configuration, troubleshooting knowledge base for common issues, community forum for users to share experiences and solutions, and encourage open-source contributions to expand system capabilities.
 
-*[Image placeholder: System monitoring dashboard mockup]*
+**Note:** System monitoring dashboard mockups can be designed using visualization tools to demonstrate the proposed health monitoring interface.
 
 ### Conclusion on Future Work
 
@@ -2636,7 +2576,7 @@ The current system provides a solid foundation for future enhancements. Priority
 
 All future work should maintain the core principles that made this system successful including simplicity for easy installation and use, cost-effectiveness making it affordable for all organizations, privacy protection ensuring data stays local, reliability providing stable 24/7 operation, and openness through open-source availability for community benefit.
 
-*[Image placeholder: Future development timeline roadmap]*
+**Note:** Future development timeline roadmaps can be created to visualize the phased approach to implementing enhancements over the coming years.
 
 
 ---
