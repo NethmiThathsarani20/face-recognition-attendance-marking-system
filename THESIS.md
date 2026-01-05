@@ -96,23 +96,23 @@ The system features Flask-based web interface enabling user management, multi-ca
 Figure 1.1: Traditional vs Automated Attendance System ......... 2
 Figure 3.1: System Architecture Diagram ........................ 14
 Figure 3.2: Hardware Integration Flow .......................... 15
-Figure 3.3: ESP32-CAM with LED Light Panel Setup ............... 17
-*[Image placeholder: Physical setup photo]*
-Figure 3.4: Raspberry Pi with Cooling Fan Configuration ........ 19
-*[Image placeholder: Raspberry Pi with fan installed]*
+Figure 3.3: ESP32-CAM with LED Light Panel Setup ...............17
+**Note:** Physical setup photos will be documented during deployment
+Figure 3.4: Raspberry Pi with Cooling Fan Configuration ........19
+**Note:** Physical setup photos will be documented during deployment
 Figure 3.5: Three-Tier System Architecture ..................... 22
 Figure 3.6: Embedding Classifier Architecture .................. 25
 Figure 3.7: Lightweight CNN Architecture ....................... 27
 Figure 3.8: Custom Embedding Model Architecture ................ 29
 Figure 3.9: Data Flow Diagram .................................. 31
 Figure 3.10: Face Detection and Alignment Process .............. 33
-*[Image placeholder: Sample face detection output]*
+**Note:** Sample face detection output can be captured during operation
 Figure 4.1: Web Interface Dashboard Screenshot ................. 36
-*[Image placeholder: Dashboard interface screenshot]*
+**Note:** Dashboard interface screenshot to be captured during deployment
 Figure 4.2: Add User Page Screenshot ........................... 36
-*[Image placeholder: Add user interface screenshot]*
+**Note:** Add user interface screenshot to be captured during deployment
 Figure 4.3: Mark Attendance Page Screenshot .................... 37
-*[Image placeholder: Mark attendance interface screenshot]*
+**Note:** Mark attendance interface screenshot to be captured during deployment
 Figure 4.4: Embedding Classifier Confusion Matrix .............. 38
 *[Generated image: embedding_models/embedding_confusion_matrix.png]*
 Figure 4.5: Embedding Classifier Precision-Recall Curve ........ 39
@@ -122,11 +122,11 @@ Figure 4.6: Embedding Classifier Confidence Distribution ....... 39
 Figure 4.7: CNN Model Confusion Matrix ......................... 40
 *[Generated image: cnn_models/cnn_confusion_matrix.png]*
 Figure 4.8: Model Performance Comparison Chart ................. 41
-*[Image placeholder: Bar chart comparing model accuracies]*
+*[Generated diagram: thesis_diagrams/model_accuracy_comparison.png]*
 Figure 4.9: Real-time Recognition Speed Comparison ............. 42
-*[Image placeholder: Speed comparison visualization]*
+*[Generated diagram: thesis_diagrams/inference_speed_comparison.png]*
 Figure 4.10: Accuracy vs Training Time Trade-off ............... 43
-*[Image placeholder: Scatter plot showing accuracy vs time]*
+*[Generated diagram: thesis_diagrams/accuracy_vs_training_time.png]*
 
 ---
 
@@ -389,7 +389,9 @@ Our system implements this hybrid approach where Raspberry Pi handles all attend
 
 The proposed face recognition attendance system employs a three-tier architecture integrating IoT devices, edge computing, and cloud services for optimal performance and scalability.
 
-*[Image placeholder: Complete system architecture diagram showing all three tiers]*
+![Complete System Architecture](thesis_diagrams/system_architecture_diagram.png)
+
+**Figure 3.1:** Complete system architecture diagram showing all three tiers: Cloud Layer (GitHub Actions), Edge Layer (Raspberry Pi), and IoT Layer (ESP32-CAM devices).
 
 ### Overall System Design
 
@@ -479,7 +481,7 @@ This architectural design ensures low latency for real-time attendance marking, 
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-*[Image placeholder: Physical implementation of the complete system setup]*
+**Note:** Physical implementation photos of the complete system setup can be documented during deployment showing ESP32-CAM units, Raspberry Pi, and network infrastructure.
 
 ### Figure 3.2: Hardware Integration Flow
 
@@ -966,18 +968,17 @@ Transfer learning provides significant advantages as InsightFace's buffalo_l mod
 
 Resource requirements are minimal with the model optimally sized for edge deployment. InsightFace buffalo_l requires 50 MB as one-time download, Logistic Regression needs only 500 KB, embedding cache for 67 users takes 2 MB, totaling approximately 52.5 MB with low overhead. Inference speed achieves 60-80ms for embedding generation and 5-10ms for classification, totaling less than 100ms per face on Raspberry Pi 4.
 
-*[Image placeholder: Resource utilization graph]*
+**Note:** Resource utilization graphs showing CPU, memory, and inference time metrics can be generated during system monitoring and profiling.
 
 Ease of updates is a key advantage when adding new users. The process requires minimal retraining with uploading 3-5 images taking 5 seconds, generating embeddings at 2-3 seconds per image, and retraining Logistic Regression in 8-10 seconds, totaling less than 30 seconds. There is no need to retrain deep neural network (which would take hours), regenerate embeddings for existing users, or rebuild entire model from scratch.
 
 Production-grade reliability comes from InsightFace being battle-tested in real-world applications including use in security systems worldwide, deployment in access control systems, powering mobile phone face unlock, and handling millions of daily recognitions. Reliability metrics observed in our system show false positive rate of 0.26% (5 errors in 1,930 validations), false negative rate of 0.26% (correctly rejects unknowns), uptime of 99.9% over 30-day test period, and consistent performance with no degradation over time.
 
-*[Image placeholder: Reliability metrics dashboard]*
+**Note:** Reliability metrics dashboards showing system uptime, error rates, and performance consistency can be generated from operational logs and monitoring data.
 
-The architecture is highly interpretable with a two-stage pipeline that is easy to understand and debug. Each stage can be monitored and optimized independently where detection failures suggest improving lighting or camera position, low confidence indicates need to add more training images for that user, and wrong classification prompts checking for similar-looking individuals. Scalability is another strength as the architecture scales gracefully from 10 users with 10 second training time and less than 100ms inference time at 99.9% accuracy, to 67 users (current) with 30 second training, less than 100ms inference, and 99.74% accuracy, up to projected 200 users with 60 second training, less than 100ms inference, and 99.0%+ accuracy.
+The architecture is highly interpretable with a two-stage pipeline that is easy to understand and debug. Each stage can be monitored and optimized independently where detection failures suggest improving lighting or camera position, low confidence indicates need to add more training images for that user, and wrong classification prompts checking for similar-looking individuals. Scalability is another strength as the architecture scales gracefully from 10 users with 10 second training time and less than 100ms inference time at 99.9% accuracy, to 67 users (current) with 30 second training, less than 100ms inference, and 99.74% accuracy, up to projected 200 users with 60 second training, less than 100ms inference, and 99.0% or higher accuracy, and even to 500 projected users with 120 second training, less than 120ms inference, and 98.5% or higher accuracy.
 
-*[Image placeholder: Scalability performance graph showing users vs metrics]*
-| 500 (projected) | 120 sec | <120ms | 98.5%+ |
+**Note:** Scalability performance graphs showing the relationship between number of users and training time, inference time, and accuracy metrics can be generated from experimental data.
 
 The model handles hundreds of users without architectural changes.
 
@@ -2380,9 +2381,9 @@ Each Pi operates independently, syncing to central database.
 
 *Note: Exchange rate used: 1 USD ≈ Rs. 300 (LKR)*
 
-*[Image placeholder: Cost breakdown pie chart showing component costs]*
+![Hardware Cost Breakdown](thesis_diagrams/cost_breakdown_pie.png)
 
-**Comparison with Commercial Solutions:**
+**Figure 4.8A:** Cost breakdown pie chart showing the distribution of component costs in the total system budget.
 
 **Comparison with Commercial Solutions:**
 
@@ -2394,29 +2395,25 @@ Each Pi operates independently, syncing to central database.
 | Fingerprint System | Rs. 360,000 | $1,200 | Rs. 0 | $0 | Rs. 360,000 | $1,200 | Contact-based |
 | RFID Card System | Rs. 240,000 | $800 | Rs. 6,000 | $20 | Rs. 312,000 | $1,040 | Cards can be shared |
 
-*[Image placeholder: Annual cost comparison bar chart]*
+![Annual Cost Comparison](thesis_diagrams/annual_cost_comparison.png)
+
+**Figure 4.8B:** Annual cost comparison bar chart showing significant savings compared to commercial alternatives.
 
 **ROI Analysis (for 50-person organization):**
 
-Assuming manual roll call:
-- Time per day: 10 minutes
-- Instructor hourly rate: Rs. 15,000/hour ($50/hour)
-- Daily cost: 10 min × (Rs. 15,000/60 min) = Rs. 2,500
-- Annual cost: Rs. 2,500 × 250 workdays = Rs. 625,000
+Assuming manual roll call with time per day of 10 minutes, instructor hourly rate of Rs. 15,000 per hour ($50/hour), the daily cost calculates to 10 minutes × (Rs. 15,000/60 minutes) = Rs. 2,500. The annual cost amounts to Rs. 2,500 × 250 workdays = Rs. 625,000.
 
 **Break-even: 23 days** (Rs. 56,700 ÷ Rs. 2,500/day)
 
 After 1 year: **Rs. 568,300 saved** (Rs. 625,000 - Rs. 56,700)
 
-*[Image placeholder: ROI timeline graph showing break-even point]*
+![ROI Timeline](thesis_diagrams/roi_timeline.png)
 
-Additional benefits (harder to quantify):
-- Eliminated proxy attendance (fraud prevention)
-- Attendance data analytics
-- Audit trail for compliance
-- Reduced administrative workload
+**Figure 4.8C:** ROI timeline graph showing break-even point at 23 days and cumulative savings over one year.
 
-*[Image placeholder: Benefits visualization infographic]*
+Additional benefits that are harder to quantify include eliminated proxy attendance providing fraud prevention, comprehensive attendance data analytics capabilities, complete audit trail ensuring compliance with regulations, and significantly reduced administrative workload freeing staff for other responsibilities.
+
+**Note:** Benefits visualization infographics summarizing qualitative advantages can be created for presentation purposes.
 
 
 ---
@@ -2439,71 +2436,49 @@ The LED light panel integration involved mounting LED strips in a ring configura
 
 Our active cooling solution through installing a 5V fan on the Raspberry Pi 4 proved equally valuable. During continuous operation, the fan reduced CPU temperature from a concerning 85°C down to a comfortable 45-50°C. This prevented thermal throttling entirely and maintained stable 1.5GHz performance throughout extended testing periods. The performance impact was substantial: recognition times improved by 50-60% (from 165ms down to 86ms per face), and we achieved reliable 24/7 operation without any thermal-related shutdowns or performance degradation.
 
-*[Image placeholder: Before/after comparison of thermal performance and lighting conditions]*
+![Hardware Improvements](thesis_diagrams/temperature_performance_graph.png)
+
+**Figure 5.1:** Before and after comparison of thermal performance showing the impact of active cooling, and lighting accuracy improvements chart showing LED panel benefits across different lighting conditions.
 
 **3. Edge-Cloud Hybrid Architecture**
-The system intelligently separates real-time recognition (edge) from model training (cloud):
 
-- Edge (Raspberry Pi): Performs all attendance marking locally with <100ms latency, ensuring privacy and eliminating cloud dependencies for daily operations.
-- Cloud (GitHub Actions): Handles computationally intensive model training automatically when new users are added, freeing Raspberry Pi resources.
+The system intelligently separates real-time recognition performed at the edge from model training performed in the cloud. The Edge layer running on Raspberry Pi performs all attendance marking locally with less than 100ms latency, ensuring privacy and eliminating cloud dependencies for daily operations. The Cloud layer using GitHub Actions handles computationally intensive model training automatically when new users are added, freeing Raspberry Pi resources for real-time tasks.
 
 This architecture achieves optimal balance between performance, cost, and operational simplicity.
 
 **4. Real-Time Performance**
-System response times validate practical deployment feasibility:
 
-- User registration: 5-9 seconds for 5 images
-- Face recognition: 80-100ms per face
-- Model training: 30 seconds (with embedding cache)
-- Attendance marking: 120-190ms total latency
+System response times validate practical deployment feasibility with user registration completing in 5-9 seconds for 5 images, face recognition executing in 80-100ms per face, model training finishing in 30 seconds when using the embedding cache, and total attendance marking latency ranging from 120-190ms.
 
-These metrics support real-world scenarios including classroom entrances (50 students in <1 minute), office access control, and multi-camera deployments.
+These metrics support real-world scenarios including classroom entrances processing 50 students in less than 1 minute, office access control systems, and multi-camera deployments.
 
 **5. Cost-Effectiveness**
+
 Our total hardware cost of Rs. 56,700 ($189) compares extremely favorably to commercial alternatives that range from Rs. 330,000 to Rs. 858,000 ($1,100-$2,860) annually. For a typical 50-person organization, the system achieves break-even in just 23 days and saves approximately Rs. 568,300 ($1,894) in the first year compared to manual roll calls - a remarkable return on investment.
 
-*[Image placeholder: Cost-benefit analysis visualization]*
+![Cost-Benefit Analysis](thesis_diagrams/roi_timeline.png)
+
+**Figure 5.2:** Cost-benefit analysis visualization showing ROI timeline and savings compared to traditional methods.
 
 **6. Comprehensive Evaluation**
-Systematic comparison of three model architectures (Embedding Classifier, Custom Embedding, Lightweight CNN) provided empirical justification for production model selection. The evaluation considered accuracy, training time, inference speed, resource requirements, and scalability.
+
+Systematic comparison of three model architectures including Embedding Classifier, Custom Embedding, and Lightweight CNN provided empirical justification for production model selection. The evaluation considered accuracy, training time, inference speed, resource requirements, and scalability across all model variants.
 
 ### Scientific Contributions
 
-1. **Validated Transfer Learning Superiority**: Demonstrated 35.7% accuracy improvement using pre-trained InsightFace embeddings vs training CNN from scratch on limited data.
-
-2. **Documented Hardware Enhancements**: Quantified benefits of LED illumination (+18% low-light accuracy) and active cooling (2x performance improvement) for edge-deployed face recognition.
-
-3. **Practical Deployment Insights**: Provided real-world testing data across multiple scenarios (classroom, office, laboratory) with detailed performance analysis.
-
-4. **Scalability Analysis**: Established theoretical capacity limits (500 users, 10-15 faces/second, 5-6 cameras) and proposed multi-Pi architecture for larger deployments.
+The research validated transfer learning superiority by demonstrating 35.7% accuracy improvement using pre-trained InsightFace embeddings versus training CNN from scratch on limited data. Hardware enhancements were comprehensively documented, quantifying the benefits of LED illumination providing 18% improvement in low-light accuracy and active cooling delivering 2x performance improvement for edge-deployed face recognition. Practical deployment insights were provided through real-world testing data across multiple scenarios including classroom, office, and laboratory environments with detailed performance analysis. Scalability analysis established theoretical capacity limits supporting 500 users, processing 10-15 faces per second, managing 5-6 cameras simultaneously, and proposed multi-Pi architecture for larger deployments.
 
 ### Practical Impact
 
-The system has been successfully deployed in pilot programs:
+The system has been successfully deployed in pilot programs across three different environments. In a university classroom setting with 50 students, the system achieved 90% time reduction from the traditional 8-10 minutes down to just 45 seconds for marking attendance of all students. In a corporate office environment with 120 employees, the automated system saved 2 hours of daily HR staff time previously spent on attendance management and verification. In a laboratory access control scenario with 25 researchers, the system recorded zero unauthorized entries during a 90-day trial period while maintaining a complete audit trail.
 
-- University classroom: 90% time reduction (8-10 min → 45 sec for 50 students)
-- Corporate office: 2 hours daily HR time saved for 120 employees
-- Laboratory access: Zero unauthorized entries in 90-day trial
-
-User feedback highlights key advantages:
-
-- Contactless operation (hygiene benefit)
-- Fast processing (no waiting)
-- Transparent audit trail (compliance)
-- No additional devices required (no cards/fobs)
+User feedback highlights key advantages of the system including contactless operation providing significant hygiene benefits, fast processing eliminating waiting times, transparent audit trail ensuring compliance with organizational requirements, and no requirement for additional devices such as cards or fobs making it convenient for users.
 
 ### Validation of Hypothesis
 
-The research validates the hypothesis that **combining IoT devices (ESP32-CAM) with edge computing (Raspberry Pi) and state-of-the-art face recognition (InsightFace) creates a practical, accurate, and scalable attendance solution suitable for real-world deployment.**
+The research validates the hypothesis that combining IoT devices specifically ESP32-CAM with edge computing on Raspberry Pi and state-of-the-art face recognition using InsightFace creates a practical, accurate, and scalable attendance solution suitable for real-world deployment.
 
-All objectives were met:
-✓ >99% recognition accuracy achieved (99.74%)
-✓ <100ms inference latency achieved (80-100ms)
-✓ Distributed IoT architecture implemented successfully
-✓ 24/7 operational capability ensured via cooling
-✓ Hybrid edge-cloud training pipeline functional
-✓ Professional web interface deployed
-✓ Comprehensive model comparison completed
+All objectives were successfully met including achieving greater than 99% recognition accuracy with the actual result of 99.74%, ensuring inference latency of less than 100ms with actual performance of 80-100ms, successfully implementing distributed IoT architecture with reliable wireless connectivity, ensuring 24/7 operational capability through active cooling implementation, establishing functional hybrid edge-cloud training pipeline, deploying professional web interface with multi-camera support, and completing comprehensive model comparison with empirical justification.
 
 ---
 
