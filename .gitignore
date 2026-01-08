@@ -39,7 +39,10 @@ build/
 /attendance_records/
 /embeddings/
 /cnn_models/
-/embedding_models/
+/embedding_models/*.pkl
+/embedding_models/*.joblib
+!/embedding_models/*.png
+!/embedding_models/*.json
 /custom_embedding_models/
 
 # Ignore alternate database directories (use only 'database/')

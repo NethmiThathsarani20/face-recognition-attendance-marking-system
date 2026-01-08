@@ -1,0 +1,25 @@
+{
+  "model": "Embedding Classifier (InsightFace + Logistic Regression)",
+  "total_epochs": 30,
+  "final_metrics": {
+    "train_accuracy": 99.95,
+    "validation_accuracy": 99.74,
+    "precision": 99.74,
+    "recall": 99.74,
+    "f1_score": 99.74,
+    "train_loss": 0.007218552788119731,
+    "validation_loss": 0.010821225110448073
+  },
+  "dataset": {
+    "total_samples": 9648,
+    "num_users": 67,
+    "train_samples": 7718,
+    "validation_samples": 1930
+  },
+  "training_details": {
+    "optimizer": "Logistic Regression",
+    "embedding_model": "InsightFace buffalo_l",
+    "embedding_size": 512,
+    "best_epoch": 30
+  }
+}
