@@ -69,7 +69,7 @@ The Embedding Classifier uses a two-stage approach:
 The Embedding Classifier is chosen as the production model because:
 
 1. **Excellent Accuracy**: 99.89% validation accuracy, nearly perfect performance
-2. **Fast Training**: Only 30 seconds to train on 9,504 samples
+2. **Fast Training**: Only ~30 seconds to train on 9,504 samples
 3. **Lightweight**: ~200 KB model size, minimal memory footprint
 4. **Real-time Inference**: 80-100 ms per face, suitable for live recognition
 5. **Easy to Update**: Adding new users requires only retraining the classifier layer

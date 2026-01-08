@@ -33,6 +33,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 OUTPUT_DIR = PROJECT_ROOT / "thesis_diagrams" / "embedding_classifier"
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
+# Constants for consistency
+INFERENCE_TIME_MS = "80-100 ms"
+TRAINING_TIME_SEC = "~30 seconds"
+MODEL_SIZE = "~200 KB"
+
 
 def set_style():
     """Set consistent matplotlib style for all diagrams"""
@@ -189,7 +194,8 @@ def generate_dataset_distribution():
         f"Face Crop: 112×112 pixels (normalized)",
         f"Embedding Dimension: 512",
         f"Dataset Split: 80% Train, 20% Validation",
-        f"Validation Accuracy: 99.89%"
+        f"Training Time: {TRAINING_TIME_SEC}",
+        f"Inference Time: {INFERENCE_TIME_MS}"
     ]
     
     y_positions = np.linspace(0.85, 0.15, len(stats))
@@ -248,6 +254,9 @@ def generate_dataset_distribution():
 def generate_training_accuracy_comparison():
     """Generate Training vs Validation Accuracy comparison"""
     set_style()
+    
+    # Set random seed for reproducible diagrams
+    np.random.seed(42)
     
     training_data = load_training_data()
     if not training_data:
@@ -355,6 +364,9 @@ def generate_training_accuracy_comparison():
 def generate_loss_convergence():
     """Generate loss convergence visualization (for logistic regression iterations)"""
     set_style()
+    
+    # Set random seed for reproducible diagrams
+    np.random.seed(42)
     
     training_data = load_training_data()
     if not training_data:
@@ -519,9 +531,9 @@ def generate_overall_metrics_table():
         ["Performance Metric", "Value", "Interpretation"],
         ["Validation Accuracy (Top-1)", f"{val_acc:.4f}%", "Excellent - near perfect"],
         ["Top-3 Accuracy", f"{val_top3_acc:.2f}%", "Perfect - 100% coverage"],
-        ["Training Time", "~30 seconds", "Very fast training"],
-        ["Inference Time", "80-100 ms", "Real-time capable"],
-        ["Model Size", "~200 KB", "Extremely lightweight"],
+        ["Training Time", TRAINING_TIME_SEC, "Very fast training"],
+        ["Inference Time", INFERENCE_TIME_MS, "Real-time capable"],
+        ["Model Size", MODEL_SIZE, "Extremely lightweight"],
         ["Embedding Dimension", "512", "Rich feature representation"],
         ["Number of Parameters", "~34K", "Minimal (only classifier layer)"],
         ["Memory Usage", "~50 MB", "Very low footprint"],
@@ -865,10 +877,10 @@ def create_summary_document():
         
         f.write("\n## Why This Model is Used in Production\n\n")
         f.write("The Embedding Classifier is chosen as the production model because:\n\n")
-        f.write("1. **Excellent Accuracy**: 99.89% validation accuracy, nearly perfect performance\n")
-        f.write("2. **Fast Training**: Only 30 seconds to train on 9,504 samples\n")
-        f.write("3. **Lightweight**: ~200 KB model size, minimal memory footprint\n")
-        f.write("4. **Real-time Inference**: 80-100 ms per face, suitable for live recognition\n")
+        f.write(f"1. **Excellent Accuracy**: 99.89% validation accuracy, nearly perfect performance\n")
+        f.write(f"2. **Fast Training**: Only {TRAINING_TIME_SEC} to train on 9,504 samples\n")
+        f.write(f"3. **Lightweight**: {MODEL_SIZE} model size, minimal memory footprint\n")
+        f.write(f"4. **Real-time Inference**: {INFERENCE_TIME_MS} per face, suitable for live recognition\n")
         f.write("5. **Easy to Update**: Adding new users requires only retraining the classifier layer\n")
         f.write("6. **Proven Technology**: Uses state-of-the-art InsightFace pre-trained features\n\n")
         

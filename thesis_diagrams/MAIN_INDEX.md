@@ -138,9 +138,9 @@ python scripts/generate_thesis_diagrams.py
 When using these diagrams, please cite:
 
 ```
-Face Recognition Based Attendance Marking System Using IoT Devices
-InsightFace + Embedding Classifier Approach
-Nethmi Thathsarani, 2026
+Thathsarani, N. (2026). Face Recognition Based Attendance Marking System 
+Using IoT Devices: InsightFace + Embedding Classifier Approach. 
+[Institution Name].
 ```
 
 ---
