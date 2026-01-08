@@ -80,6 +80,7 @@ def main():
     print("=" * 80 + "\n")
     
     # Files to copy (source, destination, convert_to_jpg)
+    # Performance curves from embedding_models/
     files_to_copy = [
         # Precision-Recall Curve
         ("embedding_precision_recall_curve.png", 
@@ -102,7 +103,16 @@ def main():
          "embedding_confusion_matrix_normalized.jpg", True),
     ]
     
+    # Model comparison diagrams from main thesis_diagrams/
+    comparison_diagrams = [
+        "model_accuracy_comparison.png",
+        "inference_speed_comparison.png", 
+        "accuracy_vs_training_time.png",
+    ]
+    
     success_count = 0
+    
+    # Copy performance curves from embedding_models
     for src_filename, dest_filename, convert_to_jpg in files_to_copy:
         src_path = EMBEDDING_MODELS_DIR / src_filename
         dest_path = THESIS_DIAGRAMS_DIR / dest_filename
@@ -115,14 +125,32 @@ def main():
             success_count += 1
         print()
     
+    # Copy comparison diagrams from main thesis_diagrams
+    print("Copying model comparison diagrams...")
+    print()
+    for diagram_filename in comparison_diagrams:
+        src_path = PROJECT_ROOT / "thesis_diagrams" / diagram_filename
+        dest_path = THESIS_DIAGRAMS_DIR / diagram_filename
+        
+        if not src_path.exists():
+            print(f"⚠ Warning: Source file not found: {src_path}")
+            continue
+        
+        if convert_and_copy(src_path, dest_path, False, quality=95):
+            success_count += 1
+        print()
+    
+    total_files = len(files_to_copy) + len(comparison_diagrams)
+    
     print("=" * 80)
-    print(f"Copy Complete: {success_count}/{len(files_to_copy)} files processed")
+    print(f"Copy Complete: {success_count}/{total_files} files processed")
     print("=" * 80)
     
-    if success_count == len(files_to_copy):
+    if success_count == total_files:
         print("\n✓ All Results and Discussion figures are now in thesis_diagrams!")
         print(f"Location: {THESIS_DIAGRAMS_DIR}/")
         print("\nFigures for thesis Results and Discussion chapter:")
+        print("\nPerformance Analysis:")
         print("1. embedding_precision_recall_curve.png")
         print("   - Shows near-perfect precision-recall performance")
         print("   - Area under curve ≈ 1.0")
@@ -144,8 +172,18 @@ def main():
         print("   - Normalized confusion matrix (percentage view)")
         print("   - Deep blue diagonal confirms 99.74% accuracy")
         print()
+        print("\nModel Comparison:")
+        print("6. model_accuracy_comparison.png")
+        print("   - Validation accuracy: 99.74% vs 98.86% vs 64.04%")
+        print()
+        print("7. inference_speed_comparison.png")
+        print("   - Real-time speed: 80-100ms vs 90-110ms vs 120-150ms")
+        print()
+        print("8. accuracy_vs_training_time.png")
+        print("   - Trade-off analysis: 99.74% in 30 seconds")
+        print()
     
-    return success_count == len(files_to_copy)
+    return success_count == total_files
 
 
 if __name__ == "__main__":

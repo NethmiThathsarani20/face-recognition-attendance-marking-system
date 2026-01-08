@@ -65,6 +65,21 @@ The following figures are referenced in the thesis Results and Discussion chapte
     - Deep blue diagonal confirms nearly 100% correct identification
     - Light-blue pixels outside diagonal represent 0.26% error rate
 
+13. **model_accuracy_comparison.png**
+    - Bar chart comparing validation accuracy across three models
+    - Embedding Classifier: 99.74%, Custom Embedding: 98.86%, CNN: 64.04%
+    - Demonstrates superiority of transfer learning approach
+
+14. **inference_speed_comparison.png**
+    - Real-time recognition speed comparison across models
+    - Shows inference times: Embedding (80-100ms), Custom (90-110ms), CNN (120-150ms)
+    - Validates real-time performance capability
+
+15. **accuracy_vs_training_time.png**
+    - Trade-off analysis between accuracy and training time
+    - Highlights Embedding Classifier's optimal balance
+    - Shows 99.74% accuracy achieved in only 30 seconds training time
+
 
 ## Model Architecture
 
