@@ -1,0 +1,389 @@
+{
+  "info": {
+    "name": "Face Recognition Attendance System API",
+    "description": "Complete API collection for testing the Face Recognition Attendance System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "face-recognition-api-v1",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "System Information",
+      "item": [
+        {
+          "name": "Get Model Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/model_status",
+              "host": ["{{base_url}}"],
+              "path": ["model_status"]
+            },
+            "description": "Get information about the active recognition model, accuracy, number of users, and training details."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{base_url}}/model_status"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"active_model\": \"embedding_classifier\",\n  \"accuracy\": 99.74,\n  \"num_users\": 67,\n  \"total_samples\": 9648,\n  \"last_trained\": \"2025-12-27\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Users List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/get_users",
+              "host": ["{{base_url}}"],
+              "path": ["get_users"]
+            },
+            "description": "Get list of all registered users in the system."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Add User (JSON Base64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"John_Doe\",\n  \"images\": [\n    \"{{base64_image_1}}\",\n    \"{{base64_image_2}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/add_user",
+              "host": ["{{base_url}}"],
+              "path": ["add_user"]
+            },
+            "description": "Add a new user with base64 encoded images. Replace {{base64_image_1}} with actual base64 encoded image data."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/add_user"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"success\",\n  \"message\": \"User John_Doe added successfully\",\n  \"images_processed\": 5\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add User (Form Data)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "user_name",
+                  "value": "Jane_Smith",
+                  "type": "text"
+                },
+                {
+                  "key": "user_images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/add_user",
+              "host": ["{{base_url}}"],
+              "path": ["add_user"]
+            },
+            "description": "Add a new user by uploading image files."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Mark Attendance (JSON Base64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"{{base64_image}}\",\n  \"camera_source\": \"ESP32-CAM-1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mark_attendance",
+              "host": ["{{base_url}}"],
+              "path": ["mark_attendance"]
+            },
+            "description": "Mark attendance using a base64 encoded image."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/mark_attendance"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"success\",\n  \"name\": \"John_Doe\",\n  \"confidence\": 0.925,\n  \"timestamp\": \"2025-12-27 09:15:30\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Mark Attendance (Form Upload)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/mark_attendance",
+              "host": ["{{base_url}}"],
+              "path": ["mark_attendance"]
+            },
+            "description": "Mark attendance by uploading an image file."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Attendance Camera",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"camera_source\": \"0\",\n  \"auto_mode\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mark_attendance_camera",
+              "host": ["{{base_url}}"],
+              "path": ["mark_attendance_camera"]
+            },
+            "description": "Mark attendance by capturing from a camera (for web interface use)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Today's Attendance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/get_attendance",
+              "host": ["{{base_url}}"],
+              "path": ["get_attendance"]
+            },
+            "description": "Get attendance records for today."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/get_attendance?start_date=2025-12-01&end_date=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["get_attendance"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-12-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-12-31"
+                }
+              ]
+            },
+            "description": "Get attendance records for a specific date range."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "item": [
+        {
+          "name": "Export Attendance PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/export_attendance_pdf",
+              "host": ["{{base_url}}"],
+              "path": ["export_attendance_pdf"]
+            },
+            "description": "Export attendance records to PDF format."
+          },
+          "response": []
+        },
+        {
+          "name": "Export Attendance PDF (Date Range)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/export_attendance_pdf?start_date=2025-12-01&end_date=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["export_attendance_pdf"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-12-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-12-31"
+                }
+              ]
+            },
+            "description": "Export attendance records for a date range to PDF."
+          },
+          "response": []
+        },
+        {
+          "name": "Export Attendance Excel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/export_attendance_excel",
+              "host": ["{{base_url}}"],
+              "path": ["export_attendance_excel"]
+            },
+            "description": "Export attendance records to Excel format."
+          },
+          "response": []
+        },
+        {
+          "name": "Export Attendance Excel (Date Range)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/export_attendance_excel?start_date=2025-12-01&end_date=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["export_attendance_excel"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-12-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-12-31"
+                }
+              ]
+            },
+            "description": "Export attendance records for a date range to Excel."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Testing",
+      "item": [
+        {
+          "name": "Camera Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/camera_test/0",
+              "host": ["{{base_url}}"],
+              "path": ["camera_test", "0"]
+            },
+            "description": "Test camera functionality. Replace '0' with camera index or IP camera URL."
+          },
+          "response": []
+        },
+        {
+          "name": "Initialize System",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/initialize_system",
+              "host": ["{{base_url}}"],
+              "path": ["initialize_system"]
+            },
+            "description": "Initialize the face recognition system in the background."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "base64_image",
+      "value": "",
+      "type": "string",
+      "description": "Base64 encoded image data (add your test image here)"
+    },
+    {
+      "key": "base64_image_1",
+      "value": "",
+      "type": "string",
+      "description": "First base64 encoded image for user registration"
+    },
+    {
+      "key": "base64_image_2",
+      "value": "",
+      "type": "string",
+      "description": "Second base64 encoded image for user registration"
+    }
+  ]
+}
