@@ -36,15 +36,34 @@ This directory contains comprehensive diagrams and visualizations for the **Embe
    - Classifier Architecture - InsightFace + Logistic Regression pipeline diagram
 
 
-## Existing Visualizations
+## Results and Discussion Chapter Figures
 
-The following visualizations are generated during model training and stored in `embedding_models/`:
+The following figures are referenced in the thesis Results and Discussion chapter:
 
-- **embedding_confusion_matrix.png** - Confusion matrix (unnormalized) showing classification results
-- **embedding_confusion_matrix_normalized.png** - Confusion matrix (normalized) for better visualization
-- **embedding_precision_recall_curve.png** - Precision-Recall curve (micro-averaged)
-- **embedding_precision_confidence_curve.png** - Precision/Recall vs Confidence threshold
-- **embedding_confidence_curve.png** - Confidence distribution histogram
+8. **embedding_precision_recall_curve.png**
+   - Precision-Recall Curve showing near-perfect performance
+   - Area under curve ≈ 1.0
+   - Demonstrates exceptional reliability at finding correct matches
+
+9. **embedding_confidence_curve.png**
+   - Confidence Distribution histogram
+   - Sharp peak between 0.85-0.95 confidence scores
+   - Justifies 60% threshold for rejecting "Unknown" individuals
+
+10. **embedding_precision_confidence_curve.png**
+    - Precision/Recall vs Confidence Threshold graph
+    - Shows precision stays at 1.0 regardless of threshold
+    - Identifies optimal threshold range (0.6-0.8) as "sweet spot"
+
+11. **embedding_confusion_matrix.jpg**
+    - Detailed Confusion Matrix with raw counts
+    - Shows 1,930 validation samples with only 5 errors
+    - Provides granular view of classification performance
+
+12. **embedding_confusion_matrix_normalized.jpg**
+    - Normalized Confusion Matrix (percentage view)
+    - Deep blue diagonal confirms nearly 100% correct identification
+    - Light-blue pixels outside diagonal represent 0.26% error rate
 
 
 ## Model Architecture
@@ -85,8 +104,14 @@ All diagrams are generated at 300 DPI for high-quality printing and are suitable
 To regenerate these diagrams, run:
 
 ```bash
+# Generate methodology and architecture diagrams
 python scripts/generate_classifier_diagrams.py
+
+# Copy Results and Discussion figures from embedding_models/
+python scripts/copy_results_figures.py
 ```
+
+Note: The Results and Discussion figures (precision-recall curves, confidence distributions, and confusion matrices) are generated during model training. The `copy_results_figures.py` script copies them from `embedding_models/` to this directory for thesis inclusion.
 
 ## Comparison with Other Models
 
