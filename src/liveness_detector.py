@@ -5,13 +5,6 @@ Implements anti-spoofing measures to prevent attendance marking with photos.
 import cv2
 import numpy as np
 from typing import Tuple, Optional, List
-import time
-
-# Handle both relative and absolute imports
-try:
-    from .config import DETECTION_SIZE
-except ImportError:
-    from config import DETECTION_SIZE
 
 
 class LivenessDetector:
@@ -28,10 +21,15 @@ class LivenessDetector:
         self.previous_frames: List[np.ndarray] = []
         self.max_frames = 3  # Store last 3 frames for motion analysis
         
-        # Thresholds
+        # Thresholds for liveness detection
         self.motion_threshold = 0.001  # Minimum motion required
         self.texture_variance_threshold = 100  # Minimum texture variance for real face
         self.edge_density_threshold = 0.015  # Minimum edge density for real face
+        self.max_edge_density_threshold = 0.15  # Maximum edge density (too many edges = photo)
+        
+        # Normalization constants
+        self.texture_variance_normalizer = 500.0  # Normalize texture variance to 0-1 range
+        self.max_motion_threshold = 0.3  # Maximum motion (too much = suspicious)
         
     def check_liveness(
         self, 
@@ -125,7 +123,7 @@ class LivenessDetector:
         variance = laplacian.var()
         
         # Normalize score (higher variance = more likely real)
-        score = min(variance / 500.0, 1.0)  # Normalize to 0-1
+        score = min(variance / self.texture_variance_normalizer, 1.0)
         
         if variance < self.texture_variance_threshold:
             reason = f"Low texture variance ({variance:.1f})"
@@ -153,7 +151,7 @@ class LivenessDetector:
         if edge_density < self.edge_density_threshold:
             reason = f"Low edge density ({edge_density:.4f})"
             return 0.3, reason
-        elif edge_density > 0.15:  # Too many edges
+        elif edge_density > self.max_edge_density_threshold:
             reason = f"Excessive edges ({edge_density:.4f})"
             return 0.5, reason
         else:
@@ -216,7 +214,7 @@ class LivenessDetector:
         if motion_score < self.motion_threshold:
             reason = f"No motion detected ({motion_score:.4f})"
             return 0.2, reason
-        elif motion_score > 0.3:  # Too much motion
+        elif motion_score > self.max_motion_threshold:
             reason = f"Excessive motion ({motion_score:.4f})"
             return 0.5, reason
         else:
