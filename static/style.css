@@ -918,8 +918,9 @@ img {
     border-radius: 12px;
     box-shadow: var(--shadow-md);
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 15px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 2px solid var(--border-color);
@@ -947,6 +948,8 @@ img {
 
 .user-info {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .user-info h4 {
@@ -954,6 +957,9 @@ img {
     color: var(--text-primary);
     font-size: 1.1rem;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-info p {
@@ -979,6 +985,8 @@ img {
     margin: 0;
     flex-shrink: 0;
     align-self: center;
+    white-space: nowrap;
+    min-width: fit-content;
 }
 
 .delete-user-btn:hover {
@@ -1002,11 +1010,22 @@ img {
     }
     
     .user-card {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        padding: 15px;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .user-info h4 {
+        font-size: 1rem;
     }
     
     .delete-user-btn {
-        width: 100%;
-        margin-top: 10px;
+        padding: 6px 12px;
+        font-size: 12px;
     }
 }
