@@ -919,6 +919,7 @@ img {
     box-shadow: var(--shadow-md);
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 15px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 2px solid var(--border-color);
@@ -971,11 +972,13 @@ img {
     font-size: 14px;
     font-weight: 600;
     transition: all 0.2s ease;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     margin: 0;
     flex-shrink: 0;
+    align-self: center;
 }
 
 .delete-user-btn:hover {
@@ -996,5 +999,14 @@ img {
     
     .users-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .user-card {
+        flex-wrap: wrap;
+    }
+    
+    .delete-user-btn {
+        width: 100%;
+        margin-top: 10px;
     }
 }
