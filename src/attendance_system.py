@@ -30,6 +30,7 @@ try:
         USE_CNN_MODEL,
     )
     from .face_manager import FaceManager
+    from .liveness_detector import LivenessDetector, check_single_image_liveness
 except ImportError:
     from config import (
         ATTENDANCE_DATE_FORMAT,
@@ -43,6 +44,7 @@ except ImportError:
         USE_CNN_MODEL,
     )
     from face_manager import FaceManager
+    from liveness_detector import LivenessDetector, check_single_image_liveness
 
 # Trainers will be imported lazily
 CNNTrainer = None
@@ -91,6 +93,10 @@ class AttendanceSystem:
         self.embedding_model_available: bool = False
         self.custom_embedding_model_available: bool = False
         
+        # Liveness detector for anti-spoofing
+        self.liveness_detector: LivenessDetector = LivenessDetector()
+        self.enable_liveness_check: bool = True  # Enable liveness detection by default
+        
         self._last_captured_image = None
         self._users_loaded: bool = False
         # Models will be loaded on first use (lazy loading)
@@ -127,7 +133,8 @@ class AttendanceSystem:
 
     def mark_attendance(
         self, input_source: Union[np.ndarray, str, int],
-        save_captured: bool = True
+        save_captured: bool = True,
+        skip_liveness_check: bool = False
     ) -> Dict[str, Any]:
         """Unified attendance marking function for camera, upload, or image array.
 
@@ -137,6 +144,7 @@ class AttendanceSystem:
                 - str: Path to image file
                 - int: Camera index
             save_captured: Whether to save the captured image for recognized faces
+            skip_liveness_check: Whether to skip liveness detection (for testing/development only)
 
         Returns:
             Dictionary with attendance result and metadata
@@ -156,6 +164,24 @@ class AttendanceSystem:
 
         # Optionally store last captured image if requested
         self._last_captured_image = image if save_captured else None
+        
+        # Perform liveness detection (anti-spoofing)
+        if self.enable_liveness_check and not skip_liveness_check:
+            print("🔍 Performing liveness detection...")
+            is_live, liveness_reason, liveness_confidence = check_single_image_liveness(image)
+            
+            if not is_live:
+                print(f"⚠️ Liveness check failed: {liveness_reason}")
+                return self._create_result(
+                    False, 
+                    f"Liveness check failed - possible photo/video spoofing attempt. {liveness_reason}",
+                    {
+                        "liveness_confidence": float(liveness_confidence),
+                        "liveness_reason": liveness_reason
+                    }
+                )
+            
+            print(f"✅ Liveness check passed: {liveness_reason} (confidence: {liveness_confidence:.2f})")
         
         recognition_result = None
 
